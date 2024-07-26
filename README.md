@@ -1,0 +1,11 @@
+# `pyensmallen`: python bindings for the [`ensmallen`](https://ensmallen.org/) library for numerical optimization
+
+Very minimal python bindings for `ensmallen` library. Currently only supports L-BFGS. See [ensmallen docs](https://ensmallen.org/docs.html) for details. 
+
+Installation:
+1. Install `armadillo` and `ensmallen` for your system (build from source, or via conda-forge; I went with the latter)
+2. git clone this repository
+3. `pip install .`
+4. Profit? Or at least minimize loss?
+
+
