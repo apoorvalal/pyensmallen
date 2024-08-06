@@ -7,29 +7,13 @@
 namespace py = pybind11;
 
 // Function type for optimization problems
-using OptimizationFunction = std::function<double(py::array_t<double>, py::array_t<double>)>;
+using DifferentiableFunction = std::function<double(py::array_t<double>, py::array_t<double>)>;
 
 // Wrapper class that implements the interface expected by ensmallen
-class FunctionWrapper
+class DifferentiableFunctionWrapper
 {
  public:
-  FunctionWrapper(const OptimizationFunction& f) : f(f) {}
-
-  double Evaluate(const arma::mat& parameters)
-  {
-    py::array_t<double> py_params(parameters.n_elem, parameters.memptr());
-    py::array_t<double> py_grad(parameters.n_elem);
-    return f(py_params, py_grad);
-  }
-
-  void Gradient(const arma::mat& parameters, arma::mat& gradient)
-  {
-    py::array_t<double> py_params(parameters.n_elem, parameters.memptr());
-    py::array_t<double> py_grad(parameters.n_elem);
-    f(py_params, py_grad);
-    py::buffer_info buf_info = py_grad.request();
-    gradient = arma::mat(static_cast<double*>(buf_info.ptr), parameters.n_rows, parameters.n_cols);
-  }
+  DifferentiableFunctionWrapper(const DifferentiableFunction& f) : f(f) {}
 
   double EvaluateWithGradient(const arma::mat& parameters, arma::mat& gradient)
   {
@@ -42,19 +26,100 @@ class FunctionWrapper
   }
 
  private:
-  OptimizationFunction f;
+  DifferentiableFunction f;
 };
 
 // Wrapper for L-BFGS optimizer
 class PyL_BFGS {
 public:
     PyL_BFGS() : optimizer() {}
+    PyL_BFGS(size_t numBasis, size_t maxIterations) {
+      optimizer = ens::L_BFGS(numBasis, maxIterations);
+    }
+    PyL_BFGS(size_t numBasis, size_t maxIterations, double armijoConstant, double wolfe, double minGradientNorm, double factr, size_t maxLineSearchTrials) {
+      optimizer = ens::L_BFGS(numBasis, maxIterations, armijoConstant, wolfe, minGradientNorm, factr, maxLineSearchTrials);
+    }
+    PyL_BFGS(size_t numBasis, size_t maxIterations, double armijoConstant, double wolfe, double minGradientNorm, double factr, size_t maxLineSearchTrials, double minStep, double maxStep) {
+      optimizer = ens::L_BFGS(numBasis, maxIterations, armijoConstant, wolfe, minGradientNorm, factr, maxLineSearchTrials, minStep, maxStep);
+    }
 
-    py::array_t<double> Optimize(OptimizationFunction f, py::array_t<double> initial_point) {
+    size_t getNumBasis() const {
+        return optimizer.NumBasis();
+    }
+
+    void setNumBasis(size_t numBasis) {
+        optimizer.NumBasis() = numBasis;
+    }
+
+    size_t getMaxIterations() const {
+        return optimizer.MaxIterations();
+    }
+
+    void setMaxIterations(size_t maxIterations) {
+        optimizer.MaxIterations() = maxIterations;
+    }
+
+    double getArmijoConstant() const {
+        return optimizer.ArmijoConstant();
+    }
+
+    void setArmijoConstant(double armijoConstant) {
+        optimizer.ArmijoConstant() = armijoConstant;
+    }
+
+    double getWolfe() const {
+        return optimizer.Wolfe();
+    }
+
+    void setWolfe(double wolfe) {
+        optimizer.Wolfe() = wolfe;
+    }
+
+    double getMinGradientNorm() const {
+        return optimizer.MinGradientNorm();
+    }
+
+    void setMinGradientNorm(double minGradientNorm) {
+        optimizer.MinGradientNorm() = minGradientNorm;
+    }
+
+    double getFactr() const {
+        return optimizer.Factr();
+    }
+
+    void setFactr(double factr) {
+        optimizer.Factr() = factr;
+    }
+
+    size_t getMaxLineSearchTrials() const {
+        return optimizer.MaxLineSearchTrials();
+    }
+
+    void setMaxLineSearchTrials(size_t maxLineSearchTrials) {
+        optimizer.MaxLineSearchTrials() = maxLineSearchTrials;
+    }
+
+    double getMinStep() const {
+        return optimizer.MinStep();
+    }
+
+    void setMinStep(double minStep) {
+        optimizer.MinStep() = minStep;
+    }
+
+    double getMaxStep() const {
+        return optimizer.MaxStep();
+    }
+
+    void setMaxStep(double maxStep) {
+        optimizer.MaxStep() = maxStep;
+    }
+
+    py::array_t<double> Optimize(DifferentiableFunction f, py::array_t<double> initial_point) {
         py::buffer_info buf_info = initial_point.request();
         arma::vec arma_initial_point(static_cast<double*>(buf_info.ptr), buf_info.shape[0], false, true);
 
-        FunctionWrapper fw(f);
+        DifferentiableFunctionWrapper fw(f);
         arma::vec result = arma_initial_point;
 
         optimizer.Optimize(fw, result);
@@ -69,5 +134,17 @@ private:
 PYBIND11_MODULE(_pyensmallen, m) {
     py::class_<PyL_BFGS>(m, "L_BFGS")
         .def(py::init<>())
+        .def(py::init<size_t, size_t>(), py::arg("numBasis"), py::arg("maxIterations"))
+        .def(py::init<size_t, size_t, double, double, double, double, size_t>(), py::arg("numBasis"), py::arg("maxIterations"), py::arg("armijoConstant"), py::arg("wolfe"), py::arg("minGradientNorm"), py::arg("factr"), py::arg("maxLineSearchTrials"))
+        .def(py::init<size_t, size_t, double, double, double, double, size_t, double, double>(), py::arg("numBasis"), py::arg("maxIterations"), py::arg("armijoConstant"), py::arg("wolfe"), py::arg("minGradientNorm"), py::arg("factr"), py::arg("maxLineSearchTrials"), py::arg("minStep"), py::arg("maxStep"))
+        .def_property("numBasis", &PyL_BFGS::getNumBasis, &PyL_BFGS::setNumBasis)
+        .def_property("maxIterations", &PyL_BFGS::getMaxIterations, &PyL_BFGS::setMaxIterations)
+        .def_property("armijoConstant", &PyL_BFGS::getArmijoConstant, &PyL_BFGS::setArmijoConstant)
+        .def_property("wolfe", &PyL_BFGS::getWolfe, &PyL_BFGS::setWolfe)
+        .def_property("minGradientNorm", &PyL_BFGS::getMinGradientNorm, &PyL_BFGS::setMinGradientNorm)
+        .def_property("factr", &PyL_BFGS::getFactr, &PyL_BFGS::setFactr)
+        .def_property("maxLineSearchTrials", &PyL_BFGS::getMaxLineSearchTrials, &PyL_BFGS::setMaxLineSearchTrials)
+        .def_property("minStep", &PyL_BFGS::getMinStep, &PyL_BFGS::setMinStep)
+        .def_property("maxStep", &PyL_BFGS::getMaxStep, &PyL_BFGS::setMaxStep)
         .def("optimize", &PyL_BFGS::Optimize);
 }
