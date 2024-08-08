@@ -7,6 +7,9 @@
 
 namespace py = pybind11;
 
+//////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////
+
 // Function type for optimization problems
 using DifferentiableFunction =
     std::function<double(py::array_t<double>, py::array_t<double>)>;
@@ -47,24 +50,149 @@ public:
                   const size_t batchSize) {
     return Evaluate(parameters);
   }
-
   void Gradient(const arma::mat &parameters, const size_t begin,
                 arma::mat &gradient, const size_t batchSize) {
     Gradient(parameters, gradient);
   }
-
   double EvaluateWithGradient(const arma::mat &parameters, const size_t begin,
                               arma::mat &gradient, const size_t batchSize) {
     return EvaluateWithGradient(parameters, gradient);
   }
-
   size_t NumFunctions() const { return 1; }
-
   void Shuffle() {}
 
 private:
   DifferentiableFunction f;
 };
+
+//////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////
+
+// New wrapper specifically for Frank-Wolfe
+class FrankWolfeFunctionWrapper : public ens::FuncSq {
+public:
+  FrankWolfeFunctionWrapper(const DifferentiableFunction &f) : f(f) {}
+
+  double Evaluate(const arma::mat &parameters) override {
+    py::array_t<double> py_params(parameters.n_elem, parameters.memptr());
+    py::array_t<double> py_grad(parameters.n_elem);
+    return f(py_params, py_grad);
+  }
+
+  void Gradient(const arma::mat &parameters, arma::mat &gradient) override {
+    py::array_t<double> py_params(parameters.n_elem, parameters.memptr());
+    py::array_t<double> py_grad(parameters.n_elem);
+    f(py_params, py_grad);
+    py::buffer_info buf_info = py_grad.request();
+    gradient = arma::mat(static_cast<double *>(buf_info.ptr), parameters.n_rows,
+                         parameters.n_cols);
+  }
+
+  double EvaluateWithGradient(const arma::mat &parameters,
+                              arma::mat &gradient) override {
+    py::array_t<double> py_params(parameters.n_elem, parameters.memptr());
+    py::array_t<double> py_grad(parameters.n_elem);
+    double result = f(py_params, py_grad);
+    py::buffer_info buf_info = py_grad.request();
+    gradient = arma::mat(static_cast<double *>(buf_info.ptr), parameters.n_rows,
+                         parameters.n_cols);
+    return result;
+  }
+
+private:
+  DifferentiableFunction f;
+};
+
+// Wrapper for FrankWolfe optimizer
+class PyFrankWolfe {
+public:
+  PyFrankWolfe(double p = 2.0, size_t maxIterations = 100000,
+               double tolerance = 1e-10)
+      : optimizer(ens::ConstrLpBallSolver(p), ens::UpdateClassic(),
+                  maxIterations, tolerance) {}
+
+  size_t getMaxIterations() const { return optimizer.MaxIterations(); }
+  void setMaxIterations(size_t maxIterations) {
+    optimizer.MaxIterations() = maxIterations;
+  }
+
+  double getTolerance() const { return optimizer.Tolerance(); }
+  void setTolerance(double tolerance) { optimizer.Tolerance() = tolerance; }
+
+  py::array_t<double> Optimize(const DifferentiableFunction &f,
+                               py::array_t<double> initial_point) {
+    py::buffer_info buf_info = initial_point.request();
+    arma::vec arma_initial_point(static_cast<double *>(buf_info.ptr),
+                                 buf_info.shape[0], false, true);
+
+    FrankWolfeFunctionWrapper fw(f);
+    arma::vec result = arma_initial_point;
+
+    optimizer.Optimize(fw, result);
+
+    return py::array_t<double>(result.n_elem, result.memptr());
+  }
+
+private:
+  ens::FrankWolfe<ens::ConstrLpBallSolver, ens::UpdateClassic> optimizer;
+};
+
+// Wrapper for OMP (Orthogonal Matching Pursuit) optimizer
+class PyOMP {
+public:
+  PyOMP(double p = 2.0, size_t maxIterations = 100000, double tolerance = 1e-10)
+      : optimizer(ens::ConstrLpBallSolver(p), ens::UpdateSpan(), maxIterations,
+                  tolerance) {}
+
+  size_t getMaxIterations() const { return optimizer.MaxIterations(); }
+  void setMaxIterations(size_t maxIterations) {
+    optimizer.MaxIterations() = maxIterations;
+  }
+
+  double getTolerance() const { return optimizer.Tolerance(); }
+  void setTolerance(double tolerance) { optimizer.Tolerance() = tolerance; }
+
+  py::array_t<double> Optimize(const DifferentiableFunction &f,
+                               py::array_t<double> initial_point) {
+    py::buffer_info buf_info = initial_point.request();
+    arma::vec arma_initial_point(static_cast<double *>(buf_info.ptr),
+                                 buf_info.shape[0], false, true);
+
+    FrankWolfeFunctionWrapper fw(f);
+    arma::vec result = arma_initial_point;
+
+    optimizer.Optimize(fw, result);
+
+    return py::array_t<double>(result.n_elem, result.memptr());
+  }
+
+private:
+  ens::FrankWolfe<ens::ConstrLpBallSolver, ens::UpdateSpan> optimizer;
+};
+
+// Add this to your PYBIND11_MODULE
+void init_frank_wolfe(py::module_ &m) {
+  py::class_<PyFrankWolfe>(m, "FrankWolfe")
+      .def(py::init<double, size_t, double>(), py::arg("p") = 2.0,
+           py::arg("max_iterations") = 100000, py::arg("tolerance") = 1e-10)
+      .def("get_max_iterations", &PyFrankWolfe::getMaxIterations)
+      .def("set_max_iterations", &PyFrankWolfe::setMaxIterations)
+      .def("get_tolerance", &PyFrankWolfe::getTolerance)
+      .def("set_tolerance", &PyFrankWolfe::setTolerance)
+      .def("optimize", &PyFrankWolfe::Optimize);
+
+  py::class_<PyOMP>(m, "OMP")
+      .def(py::init<double, size_t, double>(), py::arg("p") = 2.0,
+           py::arg("max_iterations") = 100000, py::arg("tolerance") = 1e-10)
+      .def("get_max_iterations", &PyOMP::getMaxIterations)
+      .def("set_max_iterations", &PyOMP::setMaxIterations)
+      .def("get_tolerance", &PyOMP::getTolerance)
+      .def("set_tolerance", &PyOMP::setTolerance)
+      .def("optimize", &PyOMP::Optimize);
+}
+
+//////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////
 
 // Wrapper for L-BFGS optimizer
 class PyL_BFGS {
@@ -150,6 +278,8 @@ public:
 private:
   ens::L_BFGS optimizer;
 };
+//////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////
 
 // Wrapper for Adam optimizer
 template <typename UpdateRule> class PyAdamType {
@@ -216,6 +346,9 @@ private:
   ens::AdamType<UpdateRule> optimizer;
 };
 
+//////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////
+
 PYBIND11_MODULE(_pyensmallen, m) {
   py::class_<PyL_BFGS>(m, "L_BFGS")
       .def(py::init<>())
@@ -247,6 +380,8 @@ PYBIND11_MODULE(_pyensmallen, m) {
       .def_property("minStep", &PyL_BFGS::getMinStep, &PyL_BFGS::setMinStep)
       .def_property("maxStep", &PyL_BFGS::getMaxStep, &PyL_BFGS::setMaxStep)
       .def("optimize", &PyL_BFGS::Optimize);
+  // frank wolfe
+  init_frank_wolfe(int &m);
   // Adam
   py::class_<PyAdamType<ens::AdamUpdate>>(m, "Adam")
       .def(py::init<double, size_t, double, double, double, size_t, double,
