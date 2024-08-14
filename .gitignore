@@ -31,3 +31,5 @@ __pycache__/*
 **/*_cache/*
 pyensmallen/_pyensmallen.cpython-312-x86_64-linux-gnu.so
 pyensmallen/__pycache__/__init__.cpython-312.pyc
+pyensmallen/_pyensmallen.cpython-311-x86_64-linux-gnu.so
+pyensmallen/__pycache__/__init__.cpython-311.pyc
