@@ -10,7 +10,7 @@ on:
 
 jobs:
   build-and-publish:
-    name: Build and publish release to PyPI
+    name: Build${{ startsWith(github.ref, 'refs/tags/v') && ' and Publish' || '' }} ${{ matrix.python-version }}
     runs-on: ubuntu-latest
     strategy:
       max-parallel: 5
