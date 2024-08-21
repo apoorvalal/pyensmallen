@@ -1,5 +1,5 @@
 # This builds and publishes the package to PyPI
-name: Builds and publishes the package
+name: Build and Publish
 
 on:
   push:
@@ -38,4 +38,4 @@ jobs:
         shell: bash -el {0}
       - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
-        if: github.ref == 'refs/heads/master' && startsWith(github.ref, 'refs/tags/v')
+        if: startsWith(github.ref, 'refs/tags/v')
