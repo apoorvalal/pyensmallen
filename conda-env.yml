@@ -1,0 +1,8 @@
+name: pyensmallen-build
+channels:
+  - conda-forge
+dependencies:
+  - armadillo
+  - build
+  - compilers
+  - ensmallen

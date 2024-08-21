@@ -1,0 +1,15 @@
+[build-system]
+requires = ["meson-python", "pybind11"]
+build-backend = "mesonpy"
+
+[project]
+name = 'pyensmallen'
+version = '0.0.1'
+description = 'Bespoke Python bindings for the Ensmallen library.'
+readme = 'README.md'
+requires-python = '>=3.8'
+license = {file = 'LICENSE.txt'}
+authors = [
+  {name = 'Apoorva Lal', email = 'lal.apoorva@gmail.com'},
+  {name = 'Matthew Wardrop', email = 'mpwardrop@gmail.com'},
+]
