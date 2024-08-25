@@ -73,7 +73,7 @@ jobs:
   upload_release:
     needs: [build_wheels, build_sdist]
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/master'
+    if: startsWith(github.ref, 'refs/tags/v')
     permissions:
       contents: write
     steps:
