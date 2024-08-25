@@ -71,51 +71,51 @@ jobs:
           path: ./wheelhouse/*.tar.gz
 
   upload_release:
-  needs: [build_wheels, build_sdist]
-  runs-on: ubuntu-latest
-  if: startsWith(github.ref, 'refs/tags/v')
-  permissions:
-    contents: write
-  steps:
-    - uses: actions/checkout@v2
+    needs: [build_wheels, build_sdist]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v2
 
-    - uses: actions/download-artifact@v2
-      with:
-        name: wheels
-        path: ./wheelhouse
+      - uses: actions/download-artifact@v2
+        with:
+          name: wheels
+          path: ./wheelhouse
 
-    - uses: actions/download-artifact@v2
-      with:
-        name: sdist
-        path: ./wheelhouse
+      - uses: actions/download-artifact@v2
+        with:
+          name: sdist
+          path: ./wheelhouse
 
-    - name: Create Release and Upload Assets
-      uses: actions/github-script@v6
-      with:
-        github-token: ${{secrets.GITHUB_TOKEN}}
-        script: |
-          const fs = require('fs').promises;
-          const { repo: { owner, repo }, sha } = context;
+      - name: Create Release and Upload Assets
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            const fs = require('fs').promises;
+            const { repo: { owner, repo }, sha } = context;
 
-          console.log('Creating release');
-          const release = await github.rest.repos.createRelease({
-            owner,
-            repo,
-            tag_name: process.env.GITHUB_REF,
-            name: `Release ${process.env.GITHUB_REF}`,
-            draft: false,
-            prerelease: false
-          });
-
-          console.log('Uploading assets');
-          const assets = await fs.readdir('./wheelhouse');
-          for (const asset of assets) {
-            console.log(`Uploading ${asset}`);
-            await github.rest.repos.uploadReleaseAsset({
+            console.log('Creating release');
+            const release = await github.rest.repos.createRelease({
               owner,
               repo,
-              release_id: release.data.id,
-              name: asset,
-              data: await fs.readFile(`./wheelhouse/${asset}`)
+              tag_name: process.env.GITHUB_REF,
+              name: `Release ${process.env.GITHUB_REF}`,
+              draft: false,
+              prerelease: false
             });
-          }
+
+            console.log('Uploading assets');
+            const assets = await fs.readdir('./wheelhouse');
+            for (const asset of assets) {
+              console.log(`Uploading ${asset}`);
+              await github.rest.repos.uploadReleaseAsset({
+                owner,
+                repo,
+                release_id: release.data.id,
+                name: asset,
+                data: await fs.readFile(`./wheelhouse/${asset}`)
+              });
+            }
