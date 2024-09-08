@@ -1,4 +1,4 @@
-from setuptools import setup, Extension
+from setuptools import setup, Extension, find_packages
 from setuptools.command.build_ext import build_ext
 import sys
 import setuptools
@@ -101,6 +101,8 @@ setup(
     install_requires=["pybind11>=2.4"],
     setup_requires=["pybind11>=2.4"],
     cmdclass={"build_ext": BuildExt},
+    packages=find_packages(),
+    include_package_data=True,
     zip_safe=False,
     python_requires=">=3.6",
 )
