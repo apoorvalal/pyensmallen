@@ -77,6 +77,7 @@ jobs:
           name: sdist
           path: ./wheelhouse/*.tar.gz
 
+
   upload_release:
     needs: [build_wheels, build_sdist]
     runs-on: ubuntu-latest
@@ -96,14 +97,32 @@ jobs:
           name: sdist
           path: ./wheelhouse
 
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install PyGithub
+
       - name: Create Release and Upload Assets
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          set -x
-          assets=()
-          for asset in ./wheelhouse/*; do
-            assets+=("-a" "$asset")
-          done
-          tag_name="${GITHUB_REF##*/}"
-          hub release create "${assets[@]}" -m "Release $tag_name" "$tag_name"
+          python - <<EOF
+          import os
+          from github import Github
+
+          g = Github(os.environ['GITHUB_TOKEN'])
+          repo = g.get_repo(os.environ['GITHUB_REPOSITORY'])
+
+          tag_name = os.environ['GITHUB_REF'].split('/')[-1]
+          release = repo.create_git_release(tag_name, f"Release {tag_name}", f"Release {tag_name}")
+
+          for asset in os.listdir('./wheelhouse'):
+              release.upload_asset(f"./wheelhouse/{asset}")
+
+          print("Release created and assets uploaded successfully")
+          EOF
