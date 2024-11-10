@@ -1,0 +1,6 @@
+include pyensmallen/*.hpp
+include pyensmallen/*.cpp
+include pyensmallen/*.h
+include pyensmallen/meson.build
+include LICENSE
+include README.md

@@ -1,8 +1,9 @@
-from setuptools import setup, Extension, find_packages
-from setuptools.command.build_ext import build_ext
 import sys
-import setuptools
+
 import pybind11
+import setuptools
+from setuptools import Extension, find_packages, setup
+from setuptools.command.build_ext import build_ext
 
 __version__ = "0.0.2"
 
