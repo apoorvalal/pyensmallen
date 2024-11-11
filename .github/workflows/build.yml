@@ -28,10 +28,12 @@ jobs:
         uses: mamba-org/setup-micromamba@v2.0.1
         with:
           environment-name: pyensmallen
-          create-args: >-
-            armadillo
-            ensmallen
+          create-args: armadillo ensmallen
           init-shell: bash
+          generate-run-shell: true
+        env:
+          PKG_CONFIG_PATH: "/Users/runner/micromamba/envs/pyensmallen/lib/pkgconfig"
+          CMAKE_PREFIX_PATH: "/Users/runner/micromamba/envs/pyensmallen"
 
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.19.0
