@@ -16,8 +16,8 @@ jobs:
       matrix:
         buildplat:
           - [ubuntu-latest, manylinux_x86_64]
-          - [macos-14, macosx_arm64]
-          - [macos-13, macosx_x86_64]
+          # - [macos-14, macosx_arm64]
+          # - [macos-13, macosx_x86_64]
         python:
           - ["cp310", '3.10']
           - ["cp311", '3.11']
@@ -80,34 +80,35 @@ jobs:
           name: sdist
           path: dist/*
 
-  publish-to-pypi:
-    name: >-
-      Publish Python 🐍 distribution 📦 to PyPI
-    needs:
-      - build-wheel
-      - build-sdist
-    runs-on: ubuntu-latest
-    environment:
-      name: pypi
-      url: https://pypi.org/p/pyensmallen
-    permissions:
-      id-token: write # IMPORTANT: mandatory for trusted publishing
+  # publish-to-pypi:
+  #   name: >-
+  #     Publish Python 🐍 distribution 📦 to PyPI
+  #   needs:
+  #     - build-wheel
+  #     - build-sdist
+  #   runs-on: ubuntu-latest
+  #   environment:
+  #     name: pypi
+  #     url: https://pypi.org/p/pyensmallen
+  #   permissions:
+  #     id-token: write # IMPORTANT: mandatory for trusted publishing
 
-    steps:
-      - name: Download all the dists
-        uses: actions/download-artifact@v4
-        with:
-          path: dist/
-          merge-multiple: true
-      - name: Publish distribution 📦 to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
+  #   steps:
+  #     - name: Download all the dists
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         path: dist/
+  #         merge-multiple: true
+  #     - name: Publish distribution 📦 to PyPI
+  #       uses: pypa/gh-action-pypi-publish@release/v1
 
   github-release:
     name: >-
       Sign the Python 🐍 distribution 📦 with Sigstore
       and upload them to GitHub Release
     needs:
-      - publish-to-pypi
+    - build-wheel
+    - build-sdist
     runs-on: ubuntu-latest
 
     permissions:
