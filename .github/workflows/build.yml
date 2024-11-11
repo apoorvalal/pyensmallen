@@ -28,10 +28,11 @@ jobs:
         uses: mamba-org/setup-micromamba@v2.0.1
         with:
           environment-name: pyensmallen
+          init-shell: bash
+          generate-run-shell: true
           create-args: >-
             armadillo
             ensmallen
-          init-shell: bash
 
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.19.0
