@@ -12,7 +12,7 @@ jobs:
       matrix:
         buildplat:
           - [ubuntu-latest, manylinux_x86_64]
-          # - [macos-14, macosx_arm64]
+          - [macos-14, macosx_arm64]
           # - [macos-13, macosx_x86_64]
         python:
           - ["cp310", '3.10']
@@ -37,6 +37,7 @@ jobs:
         uses: pypa/cibuildwheel@v2.19.0
         env:
           CIBW_BEFORE_BUILD: |
+            source /Users/runner/micromamba-bin/micromamba activate pyensmallen
             python -m pip install -v build
             python -c "import os; print('Environment:', os.environ)"
           CIBW_ENVIRONMENT_LINUX: >-
