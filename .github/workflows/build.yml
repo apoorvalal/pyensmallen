@@ -70,7 +70,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v3
+      - name: Setup micromamba
+        uses: mamba-org/setup-micromamba@v2.0.1
+        with:
+          environment-name: pyensmallen
+          create-args: >-
+            armadillo
+            ensmallen
+          init-shell: bash
       - name: Build sdist
+        shell: bash -el {0}  # Important to source the conda environment
         run: |
           python -m pip install -U pip build
           python -m build --sdist
