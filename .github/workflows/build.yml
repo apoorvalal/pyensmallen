@@ -15,9 +15,9 @@ jobs:
           - [macos-14, macosx_arm64]
           # - [macos-13, macosx_x86_64]
         python:
-          - ["cp310", '3.10']
-          - ["cp311", '3.11']
-          - ["cp312", '3.12']
+          - ["cp310", "3.10"]
+          - ["cp311", "3.11"]
+          - ["cp312", "3.12"]
     runs-on: ${{ matrix.buildplat[0] }}
     if: startsWith(github.ref, 'refs/tags/v')
 
@@ -52,7 +52,7 @@ jobs:
             VERBOSE=1
           CIBW_BUILD: ${{ matrix.python[0] }}-${{ matrix.buildplat[1] }}
           CIBW_BUILD_VERBOSITY: 3
-        continue-on-error: true  # Let it complete even if there's an error
+        continue-on-error: true # Let it complete even if there's an error
 
       - name: Upload logs on failure
         if: failure()
@@ -67,7 +67,6 @@ jobs:
         with:
           name: ${{ matrix.python[0] }}-${{ matrix.buildplat[1] }}
           path: wheelhouse/*.whl
-
 
   build-sdist:
     name: Build source distribution
@@ -99,28 +98,40 @@ jobs:
           name: sdist
           path: ./wheelhouse/*.tar.gz
 
-  # publish-to-pypi:
-  #   name: >-
-  #     Publish Python 🐍 distribution 📦 to PyPI
-  #   needs:
-  #     - build-wheel
-  #     - build-sdist
-  #   runs-on: ubuntu-latest
-  #   if: startsWith(github.ref, 'refs/tags/v')
-  #   environment:
-  #     name: pypi
-  #     url: https://pypi.org/p/pyensmallen
-  #   permissions:
-  #     id-token: write # IMPORTANT: mandatory for trusted publishing
+  publish-to-pypi:
+    name: Publish Python distribution to PyPI
+    needs: [build-wheel, build-sdist]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    environment:
+      name: pypi
+      url: https://pypi.org/p/pyensmallen
+    permissions:
+      id-token: write
 
-  #   steps:
-  #     - name: Download all the dists
-  #       uses: actions/download-artifact@v4
-  #       with:
-  #         path: dist/
-  #         merge-multiple: true
-  #     - name: Publish distribution 📦 to PyPI
-  #       uses: pypa/gh-action-pypi-publish@release/v1
+    steps:
+      # Download all artifacts to a consolidated directory
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist/
+          merge-multiple: true
+
+      # Move everything from wheelhouse to dist if they exist in separate dirs
+      - name: Consolidate distribution files
+        run: |
+          mkdir -p dist
+          if [ -d "dist/wheelhouse" ]; then
+            mv dist/wheelhouse/* dist/
+            rm -rf dist/wheelhouse
+          fi
+          ls -la dist/
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/
+          verbose: true
 
   upload_release:
     needs: [build-wheel, build-sdist]
@@ -131,15 +142,15 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: actions/download-artifact@v4  # Updated to v4
+      - uses: actions/download-artifact@v4 # Updated to v4
         with:
           path: ./wheelhouse
-          merge-multiple: true  # Downloads all artifacts
+          merge-multiple: true # Downloads all artifacts
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.x'
+          python-version: "3.x"
 
       - name: Install dependencies
         run: |
@@ -165,4 +176,3 @@ jobs:
 
           print("Release created and assets uploaded successfully")
           EOF
-
