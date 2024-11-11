@@ -2,9 +2,8 @@ name: Build and Release
 
 on:
   push:
-    branches:
-      - master
-
+    branches: ["*"]
+    tags: ["v*"]
 
 jobs:
   build-wheel:
