@@ -24,6 +24,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v3
+
       - name: Setup micromamba
         uses: mamba-org/setup-micromamba@v2.0.1
         with:
@@ -31,23 +32,28 @@ jobs:
           create-args: armadillo ensmallen
           init-shell: bash
           generate-run-shell: true
-        env:
-          PKG_CONFIG_PATH: "/Users/runner/micromamba/envs/pyensmallen/lib/pkgconfig"
-          CMAKE_PREFIX_PATH: "/Users/runner/micromamba/envs/pyensmallen"
 
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.19.0
         env:
           CIBW_BEFORE_BUILD: |
+            export PKG_CONFIG_PATH="/Users/runner/micromamba/envs/pyensmallen/lib/pkgconfig:$PKG_CONFIG_PATH"
+            export CMAKE_PREFIX_PATH="/Users/runner/micromamba/envs/pyensmallen"
+            ls -la /Users/runner/micromamba/envs/pyensmallen/lib/pkgconfig || echo "pkgconfig dir not found"
             python -m pip install -v build
             python -c "import os; print('Environment:', os.environ)"
           CIBW_ENVIRONMENT_LINUX: >-
             MAMBA_ROOT_PREFIX="/host/home/runner/micromamba"
             CMAKE_PREFIX_PATH="/host/home/runner/micromamba/envs/pyensmallen"
             VERBOSE=1
+          CIBW_ENVIRONMENT_MACOS: >-
+            PKG_CONFIG_PATH="/Users/runner/micromamba/envs/pyensmallen/lib/pkgconfig"
+            CMAKE_PREFIX_PATH="/Users/runner/micromamba/envs/pyensmallen"
+            VERBOSE=1
           CIBW_BUILD: ${{ matrix.python[0] }}-${{ matrix.buildplat[1] }}
           CIBW_BUILD_VERBOSITY: 3
         continue-on-error: true  # Let it complete even if there's an error
+
       - name: Upload logs on failure
         if: failure()
         uses: actions/upload-artifact@v4
