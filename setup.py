@@ -5,7 +5,15 @@ import setuptools
 from setuptools import Extension, find_packages, setup
 from setuptools.command.build_ext import build_ext
 
+from setuptools.dist import Distribution
+
+
 __version__ = "0.0.2"
+
+class BinaryDistribution(Distribution):
+    def has_ext_modules(self):
+        return True
+
 
 
 class get_pybind_include(object):
@@ -106,4 +114,5 @@ setup(
     include_package_data=True,
     zip_safe=False,
     python_requires=">=3.6",
+    distclass=BinaryDistribution,
 )

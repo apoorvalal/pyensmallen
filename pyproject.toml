@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools >=42", "wheel", "pybind11>=2.4", "meson-python"]
+requires = ["setuptools >=42", "wheel", "pybind11>=2.4", "meson-python", "numpy"]
 build-backend = "mesonpy"
 
 [tool.cibuildwheel]
@@ -7,10 +7,10 @@ skip = ["cp36-*", "*-win32", "*-manylinux_i686"]
 
 [project]
 name = 'pyensmallen'
-version = '0.0.1'
+version = '0.0.2'
 description = 'Bespoke Python bindings for the Ensmallen library.'
 readme = 'README.md'
-requires-python = '>=3.8'
+requires-python = '>=3.10'
 license = { file = 'LICENSE.txt' }
 authors = [
     { name = 'Apoorva Lal', email = 'lal.apoorva@gmail.com' },

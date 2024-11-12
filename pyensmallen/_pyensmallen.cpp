@@ -14,17 +14,20 @@ namespace py = pybind11;
 using DifferentiableFunction = std::function<double(py::array_t<double>, py::array_t<double>)>;
 
 // Wrapper class that implements the interface expected by ensmallen
-class DifferentiableFunctionWrapper {
+class DifferentiableFunctionWrapper
+{
 public:
   DifferentiableFunctionWrapper(const DifferentiableFunction &f) : f(f) {}
 
-  double Evaluate(const arma::mat &parameters) {
+  double Evaluate(const arma::mat &parameters)
+  {
     py::array_t<double> py_params(parameters.n_elem, parameters.memptr());
     py::array_t<double> py_grad(parameters.n_elem);
     return f(py_params, py_grad);
   }
 
-  void Gradient(const arma::mat &parameters, arma::mat &gradient) {
+  void Gradient(const arma::mat &parameters, arma::mat &gradient)
+  {
     py::array_t<double> py_params(parameters.n_elem, parameters.memptr());
     py::array_t<double> py_grad(parameters.n_elem);
     f(py_params, py_grad);
@@ -34,7 +37,8 @@ public:
   }
 
   double EvaluateWithGradient(const arma::mat &parameters,
-                              arma::mat &gradient) {
+                              arma::mat &gradient)
+  {
     py::array_t<double> py_params(parameters.n_elem, parameters.memptr());
     py::array_t<double> py_grad(parameters.n_elem);
     double result = f(py_params, py_grad);
@@ -45,15 +49,18 @@ public:
   }
   // Separable versions
   double Evaluate(const arma::mat &parameters, const size_t begin,
-                  const size_t batchSize) {
+                  const size_t batchSize)
+  {
     return Evaluate(parameters);
   }
   void Gradient(const arma::mat &parameters, const size_t begin,
-                arma::mat &gradient, const size_t batchSize) {
+                arma::mat &gradient, const size_t batchSize)
+  {
     Gradient(parameters, gradient);
   }
   double EvaluateWithGradient(const arma::mat &parameters, const size_t begin,
-                              arma::mat &gradient, const size_t batchSize) {
+                              arma::mat &gradient, const size_t batchSize)
+  {
     return EvaluateWithGradient(parameters, gradient);
   }
   size_t NumFunctions() const { return 1; }
@@ -67,7 +74,8 @@ private:
 //////////////////////////////////////////////////////////////////////
 
 // Wrapper for FrankWolfe optimizer
-class PyFrankWolfe {
+class PyFrankWolfe
+{
 public:
   PyFrankWolfe(double p = 2.0, size_t maxIterations = 100000,
                double tolerance = 1e-10)
@@ -75,7 +83,8 @@ public:
                   maxIterations, tolerance) {}
 
   size_t getMaxIterations() const { return optimizer.MaxIterations(); }
-  void setMaxIterations(size_t maxIterations) {
+  void setMaxIterations(size_t maxIterations)
+  {
     optimizer.MaxIterations() = maxIterations;
   }
 
@@ -83,7 +92,8 @@ public:
   void setTolerance(double tolerance) { optimizer.Tolerance() = tolerance; }
 
   py::array_t<double> Optimize(const DifferentiableFunction &f,
-                               py::array_t<double> initial_point) {
+                               py::array_t<double> initial_point)
+  {
     py::buffer_info buf_info = initial_point.request();
     arma::vec arma_initial_point(static_cast<double *>(buf_info.ptr),
                                  buf_info.shape[0], false, true);
@@ -100,26 +110,29 @@ private:
   ens::FrankWolfe<ens::ConstrLpBallSolver, ens::UpdateClassic> optimizer;
 };
 
-
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
 
 // Wrapper for L-BFGS optimizer
-class PyL_BFGS {
+class PyL_BFGS
+{
 public:
   PyL_BFGS() : optimizer() {}
-  PyL_BFGS(size_t numBasis, size_t maxIterations) {
+  PyL_BFGS(size_t numBasis, size_t maxIterations)
+  {
     optimizer = ens::L_BFGS(numBasis, maxIterations);
   }
   PyL_BFGS(size_t numBasis, size_t maxIterations, double armijoConstant,
            double wolfe, double minGradientNorm, double factr,
-           size_t maxLineSearchTrials) {
+           size_t maxLineSearchTrials)
+  {
     optimizer = ens::L_BFGS(numBasis, maxIterations, armijoConstant, wolfe,
                             minGradientNorm, factr, maxLineSearchTrials);
   }
   PyL_BFGS(size_t numBasis, size_t maxIterations, double armijoConstant,
            double wolfe, double minGradientNorm, double factr,
-           size_t maxLineSearchTrials, double minStep, double maxStep) {
+           size_t maxLineSearchTrials, double minStep, double maxStep)
+  {
     optimizer = ens::L_BFGS(numBasis, maxIterations, armijoConstant, wolfe,
                             minGradientNorm, factr, maxLineSearchTrials,
                             minStep, maxStep);
@@ -131,13 +144,15 @@ public:
 
   size_t getMaxIterations() const { return optimizer.MaxIterations(); }
 
-  void setMaxIterations(size_t maxIterations) {
+  void setMaxIterations(size_t maxIterations)
+  {
     optimizer.MaxIterations() = maxIterations;
   }
 
   double getArmijoConstant() const { return optimizer.ArmijoConstant(); }
 
-  void setArmijoConstant(double armijoConstant) {
+  void setArmijoConstant(double armijoConstant)
+  {
     optimizer.ArmijoConstant() = armijoConstant;
   }
 
@@ -147,7 +162,8 @@ public:
 
   double getMinGradientNorm() const { return optimizer.MinGradientNorm(); }
 
-  void setMinGradientNorm(double minGradientNorm) {
+  void setMinGradientNorm(double minGradientNorm)
+  {
     optimizer.MinGradientNorm() = minGradientNorm;
   }
 
@@ -155,11 +171,13 @@ public:
 
   void setFactr(double factr) { optimizer.Factr() = factr; }
 
-  size_t getMaxLineSearchTrials() const {
+  size_t getMaxLineSearchTrials() const
+  {
     return optimizer.MaxLineSearchTrials();
   }
 
-  void setMaxLineSearchTrials(size_t maxLineSearchTrials) {
+  void setMaxLineSearchTrials(size_t maxLineSearchTrials)
+  {
     optimizer.MaxLineSearchTrials() = maxLineSearchTrials;
   }
 
@@ -172,7 +190,8 @@ public:
   void setMaxStep(double maxStep) { optimizer.MaxStep() = maxStep; }
 
   py::array_t<double> Optimize(DifferentiableFunction f,
-                               py::array_t<double> initial_point) {
+                               py::array_t<double> initial_point)
+  {
     py::buffer_info buf_info = initial_point.request();
     arma::vec arma_initial_point(static_cast<double *>(buf_info.ptr),
                                  buf_info.shape[0], false, true);
@@ -192,7 +211,9 @@ private:
 //////////////////////////////////////////////////////////////////////
 
 // Wrapper for Adam optimizer
-template <typename UpdateRule> class PyAdamType {
+template <typename UpdateRule>
+class PyAdamType
+{
 public:
   PyAdamType() : optimizer() {}
   PyAdamType(double stepSize, size_t batchSize)
@@ -218,7 +239,8 @@ public:
   void setEpsilon(double eps) { optimizer.Epsilon() = eps; }
 
   size_t getMaxIterations() const { return optimizer.MaxIterations(); }
-  void setMaxIterations(size_t maxIterations) {
+  void setMaxIterations(size_t maxIterations)
+  {
     optimizer.MaxIterations() = maxIterations;
   }
 
@@ -229,17 +251,20 @@ public:
   void setShuffle(bool shuffle) { optimizer.Shuffle() = shuffle; }
 
   bool getExactObjective() const { return optimizer.ExactObjective(); }
-  void setExactObjective(bool exactObjective) {
+  void setExactObjective(bool exactObjective)
+  {
     optimizer.ExactObjective() = exactObjective;
   }
 
   bool getResetPolicy() const { return optimizer.ResetPolicy(); }
-  void setResetPolicy(bool resetPolicy) {
+  void setResetPolicy(bool resetPolicy)
+  {
     optimizer.ResetPolicy() = resetPolicy;
   }
 
   py::array_t<double> Optimize(DifferentiableFunction f,
-                               py::array_t<double> initial_point) {
+                               py::array_t<double> initial_point)
+  {
     py::buffer_info buf_info = initial_point.request();
     arma::vec arma_initial_point(static_cast<double *>(buf_info.ptr),
                                  buf_info.shape[0], false, true);
@@ -259,7 +284,8 @@ private:
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
 
-PYBIND11_MODULE(_pyensmallen, m) {
+PYBIND11_MODULE(_pyensmallen, m)
+{
   py::class_<PyL_BFGS>(m, "L_BFGS")
       .def(py::init<>())
       .def(py::init<size_t, size_t>(), py::arg("numBasis"),
