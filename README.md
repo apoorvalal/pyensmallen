@@ -4,6 +4,7 @@ Very minimal python bindings for `ensmallen` library. Currently supports
 + L-BFGS, with intended use for optimisation of smooth objectives for m-estimation
 + ADAM (and variants with different step-size routines) - makes use of ensmallen's templatization.
 + Frank-Wolfe, with intended use for constrained optimization of smooth losses
+  - constraints are either lp-ball (lasso, ridge, elastic-net) or simplex
 
 See [ensmallen docs](https://ensmallen.org/docs.html) for details.
 
