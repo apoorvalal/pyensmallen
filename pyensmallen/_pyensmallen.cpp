@@ -7,6 +7,29 @@
 
 namespace py = pybind11;
 
+// First, define the solver in the ens namespace
+namespace ens
+{
+
+  class ConstrSimplexSolver
+  {
+  public:
+    ConstrSimplexSolver() {}
+
+    template <typename MatType>
+    void Optimize(const MatType &v, MatType &s)
+    {
+      typedef typename MatType::elem_type ElemType;
+      s.zeros(v.n_elem);
+      arma::uword k = 0;
+      v.min(k);
+      s(k) = 1.0;
+      return;
+    }
+  };
+
+} // namespace ens
+
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
 
@@ -77,10 +100,27 @@ private:
 class PyFrankWolfe
 {
 public:
-  PyFrankWolfe(double p = 2.0, size_t maxIterations = 100000,
+  PyFrankWolfe(double p = 2.0,
+               size_t maxIterations = 100000,
                double tolerance = 1e-10)
-      : optimizer(ens::ConstrLpBallSolver(p), ens::UpdateClassic(),
-                  maxIterations, tolerance) {}
+      : optimizer(
+            ens::ConstrLpBallSolver(p),
+            ens::UpdateClassic(),
+            maxIterations,
+            tolerance) {}
+
+  // New constructor with explicit lambda
+  PyFrankWolfe(double p,
+               const py::array_t<double> &lambda,
+               size_t maxIterations = 100000,
+               double tolerance = 1e-10)
+      : optimizer(
+            ens::ConstrLpBallSolver(p,
+                                    arma::vec(static_cast<double *>(lambda.request().ptr),
+                                              lambda.request().size)),
+            ens::UpdateClassic(),
+            maxIterations,
+            tolerance) {}
 
   size_t getMaxIterations() const { return optimizer.MaxIterations(); }
   void setMaxIterations(size_t maxIterations)
@@ -108,6 +148,45 @@ public:
 
 private:
   ens::FrankWolfe<ens::ConstrLpBallSolver, ens::UpdateClassic> optimizer;
+};
+
+class PySimplexFrankWolfe
+{
+public:
+  PySimplexFrankWolfe(size_t maxIterations = 100000,
+                      double tolerance = 1e-10)
+      : optimizer(
+            ens::ConstrSimplexSolver(),
+            ens::UpdateClassic(),
+            maxIterations,
+            tolerance) {}
+
+  size_t getMaxIterations() const { return optimizer.MaxIterations(); }
+  void setMaxIterations(size_t maxIterations)
+  {
+    optimizer.MaxIterations() = maxIterations;
+  }
+
+  double getTolerance() const { return optimizer.Tolerance(); }
+  void setTolerance(double tolerance) { optimizer.Tolerance() = tolerance; }
+
+  py::array_t<double> Optimize(const DifferentiableFunction &f,
+                               py::array_t<double> initial_point)
+  {
+    py::buffer_info buf_info = initial_point.request();
+    arma::vec arma_initial_point(static_cast<double *>(buf_info.ptr),
+                                 buf_info.shape[0], false, true);
+
+    DifferentiableFunctionWrapper fw(f);
+    arma::vec result = arma_initial_point;
+
+    optimizer.Optimize(fw, result);
+
+    return py::array_t<double>(result.n_elem, result.memptr());
+  }
+
+private:
+  ens::FrankWolfe<ens::ConstrSimplexSolver, ens::UpdateClassic> optimizer;
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -318,13 +397,32 @@ PYBIND11_MODULE(_pyensmallen, m)
       .def("optimize", &PyL_BFGS::Optimize);
   // frank wolfe
   py::class_<PyFrankWolfe>(m, "FrankWolfe")
-      .def(py::init<double, size_t, double>(), py::arg("p") = 2.0,
-           py::arg("max_iterations") = 100000, py::arg("tolerance") = 1e-10)
+      .def(py::init<double, size_t, double>(),
+           py::arg("p") = 2.0,
+           py::arg("max_iterations") = 100000,
+           py::arg("tolerance") = 1e-10)
+      .def(py::init<double, py::array_t<double>, size_t, double>(),
+           py::arg("p"),
+           py::arg("lambda"),
+           py::arg("max_iterations") = 100000,
+           py::arg("tolerance") = 1e-10)
       .def("get_max_iterations", &PyFrankWolfe::getMaxIterations)
       .def("set_max_iterations", &PyFrankWolfe::setMaxIterations)
       .def("get_tolerance", &PyFrankWolfe::getTolerance)
       .def("set_tolerance", &PyFrankWolfe::setTolerance)
       .def("optimize", &PyFrankWolfe::Optimize);
+  // simplex frank wolfe
+  py::class_<PySimplexFrankWolfe>(m, "SimplexFrankWolfe")
+      .def(py::init<size_t, double>(),
+           py::arg("maxIterations") = 100000,
+           py::arg("tolerance") = 1e-10)
+      .def_property("maxIterations",
+                    &PySimplexFrankWolfe::getMaxIterations,
+                    &PySimplexFrankWolfe::setMaxIterations)
+      .def_property("tolerance",
+                    &PySimplexFrankWolfe::getTolerance,
+                    &PySimplexFrankWolfe::setTolerance)
+      .def("optimize", &PySimplexFrankWolfe::Optimize);
   // Adam
   py::class_<PyAdamType<ens::AdamUpdate>>(m, "Adam")
       .def(py::init<double, size_t, double, double, double, size_t, double,

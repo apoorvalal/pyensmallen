@@ -8,7 +8,7 @@ from setuptools.command.build_ext import build_ext
 from setuptools.dist import Distribution
 
 
-__version__ = "0.0.2"
+__version__ = "0.0.3"
 
 class BinaryDistribution(Distribution):
     def has_ext_modules(self):
