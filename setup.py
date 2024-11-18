@@ -10,10 +10,10 @@ from setuptools.dist import Distribution
 
 __version__ = "0.0.2"
 
+
 class BinaryDistribution(Distribution):
     def has_ext_modules(self):
         return True
-
 
 
 class get_pybind_include(object):
@@ -33,6 +33,7 @@ ext_modules = [
         "pyensmallen._pyensmallen",
         ["pyensmallen/_pyensmallen.cpp"],
         include_dirs=[
+            "pyensmallen",
             get_pybind_include(),
             get_pybind_include(user=True),
         ],
