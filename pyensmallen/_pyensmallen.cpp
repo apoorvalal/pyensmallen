@@ -77,10 +77,27 @@ private:
 class PyFrankWolfe
 {
 public:
-  PyFrankWolfe(double p = 2.0, size_t maxIterations = 100000,
+  PyFrankWolfe(double p = 2.0,
+               size_t maxIterations = 100000,
                double tolerance = 1e-10)
-      : optimizer(ens::ConstrLpBallSolver(p), ens::UpdateClassic(),
-                  maxIterations, tolerance) {}
+      : optimizer(
+            ens::ConstrLpBallSolver(p),
+            ens::UpdateClassic(),
+            maxIterations,
+            tolerance) {}
+
+  // New constructor with explicit lambda
+  PyFrankWolfe(double p,
+               const py::array_t<double> &lambda,
+               size_t maxIterations = 100000,
+               double tolerance = 1e-10)
+      : optimizer(
+            ens::ConstrLpBallSolver(p,
+                                    arma::vec(static_cast<double *>(lambda.request().ptr),
+                                              lambda.request().size)),
+            ens::UpdateClassic(),
+            maxIterations,
+            tolerance) {}
 
   size_t getMaxIterations() const { return optimizer.MaxIterations(); }
   void setMaxIterations(size_t maxIterations)
@@ -318,8 +335,15 @@ PYBIND11_MODULE(_pyensmallen, m)
       .def("optimize", &PyL_BFGS::Optimize);
   // frank wolfe
   py::class_<PyFrankWolfe>(m, "FrankWolfe")
-      .def(py::init<double, size_t, double>(), py::arg("p") = 2.0,
-           py::arg("max_iterations") = 100000, py::arg("tolerance") = 1e-10)
+      .def(py::init<double, size_t, double>(),
+           py::arg("p") = 2.0,
+           py::arg("max_iterations") = 100000,
+           py::arg("tolerance") = 1e-10)
+      .def(py::init<double, py::array_t<double>, size_t, double>(),
+           py::arg("p"),
+           py::arg("lambda"),
+           py::arg("max_iterations") = 100000,
+           py::arg("tolerance") = 1e-10)
       .def("get_max_iterations", &PyFrankWolfe::getMaxIterations)
       .def("set_max_iterations", &PyFrankWolfe::setMaxIterations)
       .def("get_tolerance", &PyFrankWolfe::getTolerance)
