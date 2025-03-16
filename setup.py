@@ -31,7 +31,7 @@ class get_pybind_include(object):
 ext_modules = [
     Extension(
         "pyensmallen._pyensmallen",
-        ["pyensmallen/_pyensmallen.cpp"],
+        ["pyensmallen/module.cpp"],
         include_dirs=[
             get_pybind_include(),
             get_pybind_include(user=True),

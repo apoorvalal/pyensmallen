@@ -3,10 +3,9 @@ requires = [
     "setuptools >=42",
     "wheel",
     "pybind11>=2.4",
-    "meson-python",
     "numpy",
 ]
-build-backend = "mesonpy"
+build-backend = "setuptools.build_meta"
 
 [tool.cibuildwheel]
 skip = ["cp36-*", "*-win32", "*-manylinux_i686"]
