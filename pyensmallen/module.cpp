@@ -1,370 +1,16 @@
-#include <armadillo>
 #include <ensmallen.hpp>
-#include <ensmallen_bits/adam/adam.hpp>
-#include <pybind11/functional.h>
-#include <pybind11/numpy.h>
 #include <pybind11/pybind11.h>
+
+#include "utils.hpp"
+#include "newton_type.hpp"
+#include "constrained.hpp"
+#include "first_order.hpp"
 
 namespace py = pybind11;
 
-// First, define the solver in the ens namespace
-namespace ens
-{
-
-  class ConstrSimplexSolver
-  {
-  public:
-    ConstrSimplexSolver() {}
-
-    template <typename MatType>
-    void Optimize(const MatType &v, MatType &s)
-    {
-      typedef typename MatType::elem_type ElemType;
-      s.zeros(v.n_elem);
-      arma::uword k = 0;
-      v.min(k);
-      s(k) = 1.0;
-      return;
-    }
-  };
-
-} // namespace ens
-
-//////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////
-
-// Function type for optimization problems
-using DifferentiableFunction = std::function<double(py::array_t<double>, py::array_t<double>)>;
-
-// Wrapper class that implements the interface expected by ensmallen
-class DifferentiableFunctionWrapper
-{
-public:
-  DifferentiableFunctionWrapper(const DifferentiableFunction &f) : f(f) {}
-
-  double Evaluate(const arma::mat &parameters)
-  {
-    py::array_t<double> py_params(parameters.n_elem, parameters.memptr());
-    py::array_t<double> py_grad(parameters.n_elem);
-    return f(py_params, py_grad);
-  }
-
-  void Gradient(const arma::mat &parameters, arma::mat &gradient)
-  {
-    py::array_t<double> py_params(parameters.n_elem, parameters.memptr());
-    py::array_t<double> py_grad(parameters.n_elem);
-    f(py_params, py_grad);
-    py::buffer_info buf_info = py_grad.request();
-    gradient = arma::mat(static_cast<double *>(buf_info.ptr), parameters.n_rows,
-                         parameters.n_cols);
-  }
-
-  double EvaluateWithGradient(const arma::mat &parameters,
-                              arma::mat &gradient)
-  {
-    py::array_t<double> py_params(parameters.n_elem, parameters.memptr());
-    py::array_t<double> py_grad(parameters.n_elem);
-    double result = f(py_params, py_grad);
-    py::buffer_info buf_info = py_grad.request();
-    gradient = arma::mat(static_cast<double *>(buf_info.ptr), parameters.n_rows,
-                         parameters.n_cols);
-    return result;
-  }
-  // Separable versions
-  double Evaluate(const arma::mat &parameters, const size_t begin,
-                  const size_t batchSize)
-  {
-    return Evaluate(parameters);
-  }
-  void Gradient(const arma::mat &parameters, const size_t begin,
-                arma::mat &gradient, const size_t batchSize)
-  {
-    Gradient(parameters, gradient);
-  }
-  double EvaluateWithGradient(const arma::mat &parameters, const size_t begin,
-                              arma::mat &gradient, const size_t batchSize)
-  {
-    return EvaluateWithGradient(parameters, gradient);
-  }
-  size_t NumFunctions() const { return 1; }
-  void Shuffle() {}
-
-private:
-  DifferentiableFunction f;
-};
-
-//////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////
-
-// Wrapper for FrankWolfe optimizer
-class PyFrankWolfe
-{
-public:
-  PyFrankWolfe(double p = 2.0,
-               size_t maxIterations = 100000,
-               double tolerance = 1e-10)
-      : optimizer(
-            ens::ConstrLpBallSolver(p),
-            ens::UpdateClassic(),
-            maxIterations,
-            tolerance) {}
-
-  // New constructor with explicit lambda
-  PyFrankWolfe(double p,
-               const py::array_t<double> &lambda,
-               size_t maxIterations = 100000,
-               double tolerance = 1e-10)
-      : optimizer(
-            ens::ConstrLpBallSolver(p,
-                                    arma::vec(static_cast<double *>(lambda.request().ptr),
-                                              lambda.request().size)),
-            ens::UpdateClassic(),
-            maxIterations,
-            tolerance) {}
-
-  size_t getMaxIterations() const { return optimizer.MaxIterations(); }
-  void setMaxIterations(size_t maxIterations)
-  {
-    optimizer.MaxIterations() = maxIterations;
-  }
-
-  double getTolerance() const { return optimizer.Tolerance(); }
-  void setTolerance(double tolerance) { optimizer.Tolerance() = tolerance; }
-
-  py::array_t<double> Optimize(const DifferentiableFunction &f,
-                               py::array_t<double> initial_point)
-  {
-    py::buffer_info buf_info = initial_point.request();
-    arma::vec arma_initial_point(static_cast<double *>(buf_info.ptr),
-                                 buf_info.shape[0], false, true);
-
-    DifferentiableFunctionWrapper fw(f);
-    arma::vec result = arma_initial_point;
-
-    optimizer.Optimize(fw, result);
-
-    return py::array_t<double>(result.n_elem, result.memptr());
-  }
-
-private:
-  ens::FrankWolfe<ens::ConstrLpBallSolver, ens::UpdateClassic> optimizer;
-};
-
-class PySimplexFrankWolfe
-{
-public:
-  PySimplexFrankWolfe(size_t maxIterations = 100000,
-                      double tolerance = 1e-10)
-      : optimizer(
-            ens::ConstrSimplexSolver(),
-            ens::UpdateClassic(),
-            maxIterations,
-            tolerance) {}
-
-  size_t getMaxIterations() const { return optimizer.MaxIterations(); }
-  void setMaxIterations(size_t maxIterations)
-  {
-    optimizer.MaxIterations() = maxIterations;
-  }
-
-  double getTolerance() const { return optimizer.Tolerance(); }
-  void setTolerance(double tolerance) { optimizer.Tolerance() = tolerance; }
-
-  py::array_t<double> Optimize(const DifferentiableFunction &f,
-                               py::array_t<double> initial_point)
-  {
-    py::buffer_info buf_info = initial_point.request();
-    arma::vec arma_initial_point(static_cast<double *>(buf_info.ptr),
-                                 buf_info.shape[0], false, true);
-
-    DifferentiableFunctionWrapper fw(f);
-    arma::vec result = arma_initial_point;
-
-    optimizer.Optimize(fw, result);
-
-    return py::array_t<double>(result.n_elem, result.memptr());
-  }
-
-private:
-  ens::FrankWolfe<ens::ConstrSimplexSolver, ens::UpdateClassic> optimizer;
-};
-
-//////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////
-
-// Wrapper for L-BFGS optimizer
-class PyL_BFGS
-{
-public:
-  PyL_BFGS() : optimizer() {}
-  PyL_BFGS(size_t numBasis, size_t maxIterations)
-  {
-    optimizer = ens::L_BFGS(numBasis, maxIterations);
-  }
-  PyL_BFGS(size_t numBasis, size_t maxIterations, double armijoConstant,
-           double wolfe, double minGradientNorm, double factr,
-           size_t maxLineSearchTrials)
-  {
-    optimizer = ens::L_BFGS(numBasis, maxIterations, armijoConstant, wolfe,
-                            minGradientNorm, factr, maxLineSearchTrials);
-  }
-  PyL_BFGS(size_t numBasis, size_t maxIterations, double armijoConstant,
-           double wolfe, double minGradientNorm, double factr,
-           size_t maxLineSearchTrials, double minStep, double maxStep)
-  {
-    optimizer = ens::L_BFGS(numBasis, maxIterations, armijoConstant, wolfe,
-                            minGradientNorm, factr, maxLineSearchTrials,
-                            minStep, maxStep);
-  }
-
-  size_t getNumBasis() const { return optimizer.NumBasis(); }
-
-  void setNumBasis(size_t numBasis) { optimizer.NumBasis() = numBasis; }
-
-  size_t getMaxIterations() const { return optimizer.MaxIterations(); }
-
-  void setMaxIterations(size_t maxIterations)
-  {
-    optimizer.MaxIterations() = maxIterations;
-  }
-
-  double getArmijoConstant() const { return optimizer.ArmijoConstant(); }
-
-  void setArmijoConstant(double armijoConstant)
-  {
-    optimizer.ArmijoConstant() = armijoConstant;
-  }
-
-  double getWolfe() const { return optimizer.Wolfe(); }
-
-  void setWolfe(double wolfe) { optimizer.Wolfe() = wolfe; }
-
-  double getMinGradientNorm() const { return optimizer.MinGradientNorm(); }
-
-  void setMinGradientNorm(double minGradientNorm)
-  {
-    optimizer.MinGradientNorm() = minGradientNorm;
-  }
-
-  double getFactr() const { return optimizer.Factr(); }
-
-  void setFactr(double factr) { optimizer.Factr() = factr; }
-
-  size_t getMaxLineSearchTrials() const
-  {
-    return optimizer.MaxLineSearchTrials();
-  }
-
-  void setMaxLineSearchTrials(size_t maxLineSearchTrials)
-  {
-    optimizer.MaxLineSearchTrials() = maxLineSearchTrials;
-  }
-
-  double getMinStep() const { return optimizer.MinStep(); }
-
-  void setMinStep(double minStep) { optimizer.MinStep() = minStep; }
-
-  double getMaxStep() const { return optimizer.MaxStep(); }
-
-  void setMaxStep(double maxStep) { optimizer.MaxStep() = maxStep; }
-
-  py::array_t<double> Optimize(DifferentiableFunction f,
-                               py::array_t<double> initial_point)
-  {
-    py::buffer_info buf_info = initial_point.request();
-    arma::vec arma_initial_point(static_cast<double *>(buf_info.ptr),
-                                 buf_info.shape[0], false, true);
-
-    DifferentiableFunctionWrapper fw(f);
-    arma::vec result = arma_initial_point;
-
-    optimizer.Optimize(fw, result);
-
-    return py::array_t<double>(result.n_elem, result.memptr());
-  }
-
-private:
-  ens::L_BFGS optimizer;
-};
-//////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////
-
-// Wrapper for Adam optimizer
-template <typename UpdateRule>
-class PyAdamType
-{
-public:
-  PyAdamType() : optimizer() {}
-  PyAdamType(double stepSize, size_t batchSize)
-      : optimizer(stepSize, batchSize) {}
-  PyAdamType(double stepSize, size_t batchSize, double beta1, double beta2,
-             double eps, size_t maxIterations, double tolerance, bool shuffle,
-             bool resetPolicy, bool exactObjective)
-      : optimizer(stepSize, batchSize, beta1, beta2, eps, maxIterations,
-                  tolerance, shuffle, resetPolicy, exactObjective) {}
-  double getStepSize() const { return optimizer.StepSize(); }
-  void setStepSize(double stepSize) { optimizer.StepSize() = stepSize; }
-
-  size_t getBatchSize() const { return optimizer.BatchSize(); }
-  void setBatchSize(size_t batchSize) { optimizer.BatchSize() = batchSize; }
-
-  double getBeta1() const { return optimizer.Beta1(); }
-  void setBeta1(double beta1) { optimizer.Beta1() = beta1; }
-
-  double getBeta2() const { return optimizer.Beta2(); }
-  void setBeta2(double beta2) { optimizer.Beta2() = beta2; }
-
-  double getEpsilon() const { return optimizer.Epsilon(); }
-  void setEpsilon(double eps) { optimizer.Epsilon() = eps; }
-
-  size_t getMaxIterations() const { return optimizer.MaxIterations(); }
-  void setMaxIterations(size_t maxIterations)
-  {
-    optimizer.MaxIterations() = maxIterations;
-  }
-
-  double getTolerance() const { return optimizer.Tolerance(); }
-  void setTolerance(double tolerance) { optimizer.Tolerance() = tolerance; }
-
-  bool getShuffle() const { return optimizer.Shuffle(); }
-  void setShuffle(bool shuffle) { optimizer.Shuffle() = shuffle; }
-
-  bool getExactObjective() const { return optimizer.ExactObjective(); }
-  void setExactObjective(bool exactObjective)
-  {
-    optimizer.ExactObjective() = exactObjective;
-  }
-
-  bool getResetPolicy() const { return optimizer.ResetPolicy(); }
-  void setResetPolicy(bool resetPolicy)
-  {
-    optimizer.ResetPolicy() = resetPolicy;
-  }
-
-  py::array_t<double> Optimize(DifferentiableFunction f,
-                               py::array_t<double> initial_point)
-  {
-    py::buffer_info buf_info = initial_point.request();
-    arma::vec arma_initial_point(static_cast<double *>(buf_info.ptr),
-                                 buf_info.shape[0], false, true);
-
-    DifferentiableFunctionWrapper fw(f);
-    arma::vec result = arma_initial_point;
-
-    optimizer.Optimize(fw, result);
-
-    return py::array_t<double>(result.n_elem, result.memptr());
-  }
-
-private:
-  ens::AdamType<UpdateRule> optimizer;
-};
-
-//////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////
-
 PYBIND11_MODULE(_pyensmallen, m)
 {
+  // L-BFGS (Newton-type) optimizer
   py::class_<PyL_BFGS>(m, "L_BFGS")
       .def(py::init<>())
       .def(py::init<size_t, size_t>(), py::arg("numBasis"),
@@ -395,7 +41,8 @@ PYBIND11_MODULE(_pyensmallen, m)
       .def_property("minStep", &PyL_BFGS::getMinStep, &PyL_BFGS::setMinStep)
       .def_property("maxStep", &PyL_BFGS::getMaxStep, &PyL_BFGS::setMaxStep)
       .def("optimize", &PyL_BFGS::Optimize);
-  // frank wolfe
+  
+  // FrankWolfe - constrained optimization
   py::class_<PyFrankWolfe>(m, "FrankWolfe")
       .def(py::init<double, size_t, double>(),
            py::arg("p") = 2.0,
@@ -411,7 +58,8 @@ PYBIND11_MODULE(_pyensmallen, m)
       .def("get_tolerance", &PyFrankWolfe::getTolerance)
       .def("set_tolerance", &PyFrankWolfe::setTolerance)
       .def("optimize", &PyFrankWolfe::Optimize);
-  // simplex frank wolfe
+  
+  // SimplexFrankWolfe - simplex constrained optimization
   py::class_<PySimplexFrankWolfe>(m, "SimplexFrankWolfe")
       .def(py::init<size_t, double>(),
            py::arg("maxIterations") = 100000,
@@ -423,7 +71,8 @@ PYBIND11_MODULE(_pyensmallen, m)
                     &PySimplexFrankWolfe::getTolerance,
                     &PySimplexFrankWolfe::setTolerance)
       .def("optimize", &PySimplexFrankWolfe::Optimize);
-  // Adam
+  
+  // Adam - first-order optimization
   py::class_<PyAdamType<ens::AdamUpdate>>(m, "Adam")
       .def(py::init<double, size_t, double, double, double, size_t, double,
                     bool, bool, bool>(),
@@ -455,7 +104,8 @@ PYBIND11_MODULE(_pyensmallen, m)
       .def_property("resetPolicy", &PyAdamType<ens::AdamUpdate>::getResetPolicy,
                     &PyAdamType<ens::AdamUpdate>::setResetPolicy)
       .def("optimize", &PyAdamType<ens::AdamUpdate>::Optimize);
-  // AdaMax
+  
+  // AdaMax - Adam variant
   py::class_<PyAdamType<ens::AdaMaxUpdate>>(m, "AdaMax")
       .def(py::init<double, size_t, double, double, double, size_t, double,
                     bool, bool, bool>(),
@@ -488,7 +138,8 @@ PYBIND11_MODULE(_pyensmallen, m)
                     &PyAdamType<ens::AdaMaxUpdate>::getResetPolicy,
                     &PyAdamType<ens::AdaMaxUpdate>::setResetPolicy)
       .def("optimize", &PyAdamType<ens::AdaMaxUpdate>::Optimize);
-  // AMSGrad
+  
+  // AMSGrad - Adam variant
   py::class_<PyAdamType<ens::AMSGradUpdate>>(m, "AMSGrad")
       .def(py::init<double, size_t, double, double, double, size_t, double,
                     bool, bool, bool>(),
@@ -521,7 +172,8 @@ PYBIND11_MODULE(_pyensmallen, m)
                     &PyAdamType<ens::AMSGradUpdate>::getResetPolicy,
                     &PyAdamType<ens::AMSGradUpdate>::setResetPolicy)
       .def("optimize", &PyAdamType<ens::AMSGradUpdate>::Optimize);
-  // OptimisticAdam
+  
+  // OptimisticAdam - Adam variant
   py::class_<PyAdamType<ens::OptimisticAdamUpdate>>(m, "OptimisticAdam")
       .def(py::init<double, size_t, double, double, double, size_t, double,
                     bool, bool, bool>(),
@@ -559,7 +211,8 @@ PYBIND11_MODULE(_pyensmallen, m)
                     &PyAdamType<ens::OptimisticAdamUpdate>::getResetPolicy,
                     &PyAdamType<ens::OptimisticAdamUpdate>::setResetPolicy)
       .def("optimize", &PyAdamType<ens::OptimisticAdamUpdate>::Optimize);
-  // Nadam
+  
+  // Nadam - Adam variant
   py::class_<PyAdamType<ens::NadamUpdate>>(m, "Nadam")
       .def(py::init<double, size_t, double, double, double, size_t, double,
                     bool, bool, bool>(),

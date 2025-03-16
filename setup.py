@@ -4,16 +4,14 @@ import pybind11
 import setuptools
 from setuptools import Extension, find_packages, setup
 from setuptools.command.build_ext import build_ext
-
 from setuptools.dist import Distribution
 
+__version__ = "0.0.4"
 
-__version__ = "0.0.3"
 
 class BinaryDistribution(Distribution):
     def has_ext_modules(self):
         return True
-
 
 
 class get_pybind_include(object):
@@ -31,7 +29,7 @@ class get_pybind_include(object):
 ext_modules = [
     Extension(
         "pyensmallen._pyensmallen",
-        ["pyensmallen/_pyensmallen.cpp"],
+        ["pyensmallen/module.cpp"],
         include_dirs=[
             get_pybind_include(),
             get_pybind_include(user=True),
