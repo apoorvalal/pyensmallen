@@ -114,19 +114,24 @@ class EnsmallenEstimator:
 
         return obj_value
 
-    def optimal_weighting_matrix(self, moments: np.ndarray) -> np.ndarray:
+    def optimal_weighting_matrix(
+        self,
+        moments: np.ndarray,
+        epsi: float = 1e-8,
+    ) -> np.ndarray:
         """
         Calculate optimal weighting matrix: (E[g_i g_i'])^(-1)
 
         Args:
             moments: Matrix of moment conditions
+            epsi: Regularization parameter for stability
 
         Returns:
             Optimal weighting matrix
         """
         # Compute the moment covariance matrix with regularization for stability
         S = (1 / self.n_) * (moments.T @ moments)
-        epsilon = 1e-8 * np.eye(S.shape[0])
+        epsilon = epsi * np.eye(S.shape[0])
         return np.linalg.inv(S + epsilon)
 
     def fit(
@@ -144,8 +149,6 @@ class EnsmallenEstimator:
             y: Outcome vector
             x: Covariate matrix (including intercept)
             verbose: Whether to print optimization details
-            max_iterations: Maximum number of optimization iterations
-            tolerance: Convergence tolerance for optimization
         """
         # Store data
         self.z_, self.y_, self.x_ = z, y, x
@@ -445,7 +448,6 @@ class EnsmallenEstimator:
         # Create parameter names
         if param_names is None:
             param_names = [f"θ_{i}" for i in range(len(self.theta_))]
-
 
         # Create summary DataFrame
         result = pd.DataFrame(
