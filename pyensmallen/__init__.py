@@ -17,6 +17,7 @@ import os
 
 from ._pyensmallen import *
 from .losses import linear_obj, logistic_obj, poisson_obj
+from .gmm import EnsmallenEstimator
 
 
 __all__ = [
@@ -30,4 +31,5 @@ __all__ = [
     "linear_obj",
     "logistic_obj",
     "poisson_obj",
+    "EnsmallenEstimator",
 ]
