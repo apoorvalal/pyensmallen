@@ -1,6 +1,6 @@
 project('pyensmallen',
         ['cpp'],
-        version: '0.2.0',
+        version: '0.2.1',
         default_options: ['cpp_std=c++14'])
 
 py = import('python').find_installation(pure: false)
