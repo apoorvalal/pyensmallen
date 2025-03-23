@@ -6,7 +6,7 @@ from setuptools import Extension, find_packages, setup
 from setuptools.command.build_ext import build_ext
 from setuptools.dist import Distribution
 
-__version__ = "0.0.4"
+__version__ = "0.0.5"
 
 
 class BinaryDistribution(Distribution):
