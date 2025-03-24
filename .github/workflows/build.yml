@@ -52,7 +52,7 @@ jobs:
             VERBOSE=1
           CIBW_BUILD: ${{ matrix.python[0] }}-${{ matrix.buildplat[1] }}
           CIBW_BUILD_VERBOSITY: 3
-        # Removed continue-on-error to expose build failures
+        continue-on-error: true # Let it complete even if there's an error
 
       - name: Upload logs on failure
         if: failure()
@@ -147,12 +147,32 @@ jobs:
           path: ./wheelhouse
           merge-multiple: true # Downloads all artifacts
 
-      - name: Create preliminary release
-        id: create_release
-        uses: softprops/action-gh-release@v1
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
-          name: "Release ${{ github.ref_name }}"
-          draft: false
-          prerelease: false
-          generate_release_notes: true
-          files: ./wheelhouse/**/*.{whl,tar.gz}
+          python-version: "3.x"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install PyGithub
+
+      - name: Create Release and Upload Assets
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python - <<EOF
+          import os
+          from github import Github
+
+          g = Github(os.environ['GITHUB_TOKEN'])
+          repo = g.get_repo(os.environ['GITHUB_REPOSITORY'])
+
+          tag_name = os.environ['GITHUB_REF'].split('/')[-1]
+          release = repo.create_git_release(tag_name, f"Release {tag_name}", f"Release {tag_name}")
+
+          for asset in os.listdir('./wheelhouse'):
+              release.upload_asset(f"./wheelhouse/{asset}")
+
+          print("Release created and assets uploaded successfully")
+          EOF
