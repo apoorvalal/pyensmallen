@@ -2,10 +2,23 @@
 requires = [
     "setuptools >=42",
     "wheel",
-    "pybind11>=2.4", 
-    "numpy"
+    "pybind11>=2.4",
+    "meson-python",
+    "numpy",
 ]
-build-backend = "setuptools.build_meta"
+build-backend = "mesonpy"
 
 [tool.cibuildwheel]
 skip = ["cp36-*", "*-win32", "*-manylinux_i686"]
+
+[project]
+name = 'pyensmallen'
+version = '0.2.6'
+description = 'Python bindings for the Ensmallen library.'
+readme = 'README.md'
+requires-python = '>=3.10'
+license = { file = 'LICENSE.txt' }
+authors = [
+    { name = 'Apoorva Lal', email = 'lal.apoorva@gmail.com' },
+    { name = 'Matthew Wardrop', email = 'mpwardrop@gmail.com' },
+]
