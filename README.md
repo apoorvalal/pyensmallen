@@ -1,5 +1,7 @@
 # `pyensmallen`: python bindings for the [`ensmallen`](https://ensmallen.org/) library for numerical optimization
 
+[![Build and Release](https://github.com/apoorvalal/pyensmallen/actions/workflows/build.yml/badge.svg)](https://github.com/apoorvalal/pyensmallen/actions/workflows/build.yml)
+
 Minimal python bindings for `ensmallen` library. Currently supports
 + L-BFGS, with intended use for optimisation of smooth objectives for m-estimation
 + ADAM (and variants with different step-size routines) - makes use of ensmallen's templatization.
