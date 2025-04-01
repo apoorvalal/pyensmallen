@@ -1,4 +1,6 @@
 # %%
+from pathlib import Path
+import json
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -7,104 +9,101 @@ from matplotlib.gridspec import GridSpec
 
 sns.set_context("talk")
 
-# Read the data
-df = pd.read_csv("benchmark_summary.csv")
-
-# Clean and prepare the data
-df = df.dropna(subset=["Avg Time (s)"])
-df["Is Fastest"] = df["Is Fastest"] == "True"
-df["n_samples"] = df["n_samples"].astype(int)
-df["n_features"] = df["n_features"].astype(int)
-df.head()
+######################################################################
+# %%
+with open("benchmark_results_20250331_215345.json", "r") as f:
+    results = json.load(f)
 
 # %%
-
-# Create a figure with facets for each model type
-fig, axes = plt.subplots(1, 3, figsize=(15, 9), sharey=True)
-
-# Generate a palette with distinct colors for libraries
-colors = {"scipy": "#1f77b4", "pyensmallen": "#ff7f0e", "statsmodels": "#2ca02c"}
-linestyles = {5: "-", 20: "--"}
-markers = {5: "o", 20: "^"}
-
-# Get unique models
-model_types = ["Linear", "Logistic", "Poisson"]
-
-# Plot each model in a separate facet
-for i, model_name in enumerate(model_types):
-    ax = axes[i]
-    model_data = df[df["Model"] == model_name]
-
-    # Plot each feature count and library combination
-    for n_features in [5, 20]:
-        subset = model_data[model_data["n_features"] == n_features]
-
-        for lib, color in colors.items():
-            lib_data = subset[subset["Library"] == lib]
-            if not lib_data.empty:
-                # Sort by n_samples to ensure proper line connection
-                lib_data = lib_data.sort_values("n_samples")
-
-                ax.loglog(
-                    lib_data["n_samples"],
-                    lib_data["Avg Time (s)"],
-                    marker=markers[n_features],
-                    linestyle=linestyles[n_features],
-                    color=color,
-                    markersize=6,
-                    linewidth=2,
-                    label=f"{lib}, {n_features} features",
+def model_family_results(model_fam, size_key):
+    m = results[model_fam][size_key]
+    n_samples, n_features = map(int, size_key.replace('n', '').replace('k', '').split('_'))
+    res = []
+    i = 0
+    for trial in m:
+        i += 1
+        for lib in trial:
+            if lib != 'true':
+                params = np.array(trial[lib]['params'])
+                time, converged = trial[lib]['time'], np.isnan(params).sum() == 0
+                res.append(
+                    {
+                        "model": model_fam,
+                        "n": n_samples,
+                        "k": n_features,
+                        "trial_no": i,
+                        "lib": lib,
+                        "time": time,
+                        "converged": converged,
+                    }
                 )
-
-    # Set titles and labels
-    ax.set_ylabel("Runtime (seconds, log scale)")
-    ax.set_title(f"{model_name} Regression")
-    ax.grid(True, which="both", ls="-", alpha=0.2)
-
-    # Set common x-axis label
-axes[-1].set_xlabel("Number of Samples (log scale)")
-
-# Set x-axis ticks
-for ax in axes:
-    ax.set_xticks([1000, 10000, 100000, 1000000, 10000000])
-    ax.set_xticklabels(["1K", "10K", "100K", "1M", "10M"])
-
-# Add explanatory annotations
-for i, ax in enumerate(axes):
-    model_name = model_types[i]
-    min_y, max_y = ax.get_ylim()
-
-    fastest_lib = None
-    fastest_time = float("inf")
-
-    # Find the fastest library for 10M samples
-    for lib in colors.keys():
-        for features in [5, 20]:
-            lib_data = df[
-                (df["Model"] == model_name)
-                & (df["Library"] == lib)
-                & (df["n_features"] == features)
-                & (df["n_samples"] == 10000000)
-            ]
-
-            if not lib_data.empty and lib_data["Avg Time (s)"].iloc[0] < fastest_time:
-                fastest_time = lib_data["Avg Time (s)"].iloc[0]
-                fastest_lib = lib
-
-# Add a main title to the figure
-# fig.suptitle("Statistical Libraries Performance Comparison")
-plt.tight_layout()
-# plt.subplots_adjust(hspace=0.2)
-#
-# add legend outside of the plot
-plt.legend(
-    bbox_to_anchor=(1.05, 1),
-    loc="upper left",
-    borderaxespad=0.0,
-    title="Library, # of Features",
+    return pd.DataFrame(res)
+# %%
+# Get the results for a specific model family and size
+models = ["linear", "logistic", "poisson"]
+keys = results['linear'].keys()
+all_res = pd.concat(
+    [model_family_results(model, key) for model in models for key in keys],
+    axis=0,
 )
 
-
-plt.savefig("library_performance_comparison.png", dpi=300, bbox_inches="tight")
-plt.show()
 # %%
+agg_df = all_res.groupby(["model", "lib", "n", "k"]).agg(
+    time_mean=("time", "mean"),
+    converged_mean=("converged", "mean"),
+).reset_index()
+
+# %%
+agg_df.n.unique()
+
+# %%
+# Create a combined column for lib (hue) and k (style)
+agg_df['k'] = agg_df['k'].astype(str)  # Ensure k is a string for style differentiation
+# %%
+
+# Plot 1: Time mean faceted by model
+g1 = sns.FacetGrid(agg_df.assign(z = ""), col='model', row = "k", height=6, aspect=1.2)
+g1.map_dataframe(
+    sns.lineplot,
+    x='n',
+    y='time_mean',
+    hue='lib',
+    style='z',
+    markers=True,
+    dashes=True,
+)
+# add grid lines
+g1.map(plt.grid, linestyle='--', alpha=0.5)
+g1.add_legend(title='Library, # of Features')
+g1.set_axis_labels('Sample Size (log scale)', 'Runtime (seconds, log scale)')
+g1.set_titles('Model: {col_name} | # of Features: {row_name}')
+
+# Set y and x axis to log scale
+g1.set(yscale='log')
+g1.set(xscale='log')
+g1.savefig('benchmark_time.png', dpi=300)
+# %%
+# Plot 1: Time mean faceted by model
+g2 = sns.FacetGrid(agg_df.assign(z = ""), col='model', row = "k", height=6, aspect=1.2)
+g2.map_dataframe(
+    sns.lineplot,
+    x='n',
+    y='converged_mean',
+    hue='lib',
+    style='z',
+    markers=True,
+    dashes=True,
+)
+# add grid lines
+g2.map(plt.grid, linestyle='--', alpha=0.5)
+g2.add_legend(title='Library, # of Features')
+g2.set_axis_labels('Number of Samples (log scale)', 'prop converged')
+g2.set_titles('Model: {col_name} | # of Features: {row_name}')
+
+# Set y and x axis to log scale
+g2.set(xscale='log')
+g2.savefig('benchmark_conv.png', dpi=300)
+# %%
+
+
+

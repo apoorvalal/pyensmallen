@@ -18,6 +18,10 @@ See [ensmallen docs](https://ensmallen.org/docs.html) for details. The `notebook
 
 ## Installation:
 
+Make sure your system has `blas` installed. On macos, this can be done via brew. Linux systems should have it installed by default. If you are using conda, you can install `blas` via conda-forge.
+
+Then,
+
 __from pypi__
 
 ```
