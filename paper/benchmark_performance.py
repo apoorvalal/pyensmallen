@@ -33,6 +33,8 @@ import seaborn as sns
 from pathlib import Path
 import json
 
+import tqdm
+
 # Check if JAX is available and import it
 try:
     import jax
@@ -164,7 +166,6 @@ def benchmark_linear_regression(X, y, true_params, libraries=None):
 
     # pyensmallen
     if 'pyensmallen' in libraries:
-        print("Benchmarking pyensmallen linear regression...")
         start_time = time.time()
         optimizer = pyensmallen.L_BFGS()
         result_ens = optimizer.optimize(
@@ -179,7 +180,6 @@ def benchmark_linear_regression(X, y, true_params, libraries=None):
 
     # scipy
     if 'scipy' in libraries:
-        print("Benchmarking scipy linear regression...")
         start_time = time.time()
         result_scipy = scipy.optimize.minimize(
             fun=lambda b: np.sum((X @ b - y) ** 2),
@@ -194,7 +194,6 @@ def benchmark_linear_regression(X, y, true_params, libraries=None):
 
     # statsmodels
     if 'statsmodels' in libraries:
-        print("Benchmarking statsmodels linear regression...")
         start_time = time.time()
         sm_result = sm.OLS(y, X).fit().params
         end_time = time.time()
@@ -205,7 +204,6 @@ def benchmark_linear_regression(X, y, true_params, libraries=None):
 
     # JAX
     if 'jax' in libraries and HAS_JAX:
-        print("Benchmarking JAX linear regression...")
         start_time = time.time()
         X_jnp, y_jnp = jnp.array(X), jnp.array(y)
 
@@ -233,7 +231,6 @@ def benchmark_linear_regression(X, y, true_params, libraries=None):
 
     # CVXPY
     if 'cvxpy' in libraries and HAS_CVXPY:
-        print("Benchmarking CVXPY linear regression...")
         start_time = time.time()
         b = cp.Variable(k)
         cost = cp.norm(X @ b - y, p=2) ** 2
@@ -286,7 +283,6 @@ def benchmark_logistic_regression(X, y, true_params, libraries=None):
 
     # pyensmallen
     if 'pyensmallen' in libraries:
-        print("Benchmarking pyensmallen logistic regression...")
         start_time = time.time()
         optimizer = pyensmallen.L_BFGS()
         result_ens = optimizer.optimize(
@@ -301,7 +297,6 @@ def benchmark_logistic_regression(X, y, true_params, libraries=None):
 
     # scipy
     if 'scipy' in libraries:
-        print("Benchmarking scipy logistic regression...")
         start_time = time.time()
         try:
             result_scipy = scipy.optimize.minimize(
@@ -327,7 +322,6 @@ def benchmark_logistic_regression(X, y, true_params, libraries=None):
 
     # statsmodels
     if 'statsmodels' in libraries:
-        print("Benchmarking statsmodels logistic regression...")
         start_time = time.time()
         try:
             sm_result = sm.Logit(y, X).fit(disp=0).params
@@ -345,7 +339,6 @@ def benchmark_logistic_regression(X, y, true_params, libraries=None):
 
     # JAX
     if 'jax' in libraries and HAS_JAX:
-        print("Benchmarking JAX logistic regression...")
         start_time = time.time()
         X_jnp, y_jnp = jnp.array(X), jnp.array(y)
 
@@ -374,7 +367,6 @@ def benchmark_logistic_regression(X, y, true_params, libraries=None):
 
     # CVXPY
     if 'cvxpy' in libraries and HAS_CVXPY:
-        print("Benchmarking CVXPY logistic regression...")
         start_time = time.time()
         try:
             b = cp.Variable(k)
@@ -435,7 +427,6 @@ def benchmark_poisson_regression(X, y, true_params, libraries=None):
 
     # pyensmallen
     if 'pyensmallen' in libraries:
-        print("Benchmarking pyensmallen Poisson regression...")
         start_time = time.time()
         optimizer = pyensmallen.L_BFGS()
         result_ens = optimizer.optimize(
@@ -450,7 +441,6 @@ def benchmark_poisson_regression(X, y, true_params, libraries=None):
 
     # scipy
     if 'scipy' in libraries:
-        print("Benchmarking scipy Poisson regression...")
         start_time = time.time()
         try:
             result_scipy = scipy.optimize.minimize(
@@ -472,7 +462,6 @@ def benchmark_poisson_regression(X, y, true_params, libraries=None):
 
     # statsmodels
     if 'statsmodels' in libraries:
-        print("Benchmarking statsmodels Poisson regression...")
         start_time = time.time()
         try:
             sm_result = sm.Poisson(y, X).fit(disp=0, maxiter=100).params
@@ -489,7 +478,6 @@ def benchmark_poisson_regression(X, y, true_params, libraries=None):
 
     # JAX
     if 'jax' in libraries and HAS_JAX:
-        print("Benchmarking JAX Poisson regression...")
         start_time = time.time()
         X_jnp, y_jnp = jnp.array(X), jnp.array(y)
 
@@ -615,7 +603,8 @@ def run_benchmarks(sizes, model_types=None, libraries=None, n_trials=1, output_d
             size_key = f"n{n_samples}_k{n_features}"
             all_results[model_type][size_key] = []
 
-            for trial in range(n_trials):
+            # tqdm progress bar
+            for trial in tqdm.tqdm(range(n_trials), desc=f"Running {model_type} regression with n={n_samples}, k={n_features}"):
                 print(f"Running {model_type} regression with n={n_samples}, k={n_features}, trial {trial+1}/{n_trials}")
 
                 # Generate data
@@ -651,164 +640,11 @@ def run_benchmarks(sizes, model_types=None, libraries=None, n_trials=1, output_d
     return all_results
 
 
-def create_summary_plots(results, output_dir='.'):
-    """Create summary plots from benchmark results
-
-    Parameters
-    ----------
-    results : dict
-        Results dictionary from run_benchmarks
-    output_dir : str, optional
-        Directory to save plots, by default 'benchmark_results'
-    """
-    Path(output_dir).mkdir(parents=True, exist_ok=True)
-
-    # Plot time comparisons for each model type
-    for model_type in results:
-        # Extract times for each library and size
-        times_data = []
-
-        for size_key, trials in results[model_type].items():
-            n_samples, n_features = map(int, size_key.replace('n', '').replace('k', '').split('_'))
-
-            # Average over trials
-            for trial in trials:
-                for lib in trial:
-                    if lib != 'true':
-                        times_data.append({
-                            'Library': lib,
-                            'n_samples': n_samples,
-                            'n_features': n_features,
-                            'Time (s)': trial[lib]['time']
-                        })
-
-        # Convert to DataFrame
-        times_df = pd.DataFrame(times_data)
-
-        # Create time comparison plots
-        plt.figure(figsize=(12, 8))
-        for lib in times_df['Library'].unique():
-            lib_data = times_df[times_df['Library'] == lib]
-
-            for n_features in lib_data['n_features'].unique():
-                subset = lib_data[lib_data['n_features'] == n_features]
-                if not subset.empty:
-                    plt.plot(subset['n_samples'], subset['Time (s)'],
-                             marker='o', label=f"{lib} (k={n_features})")
-
-        plt.xscale('log')
-        plt.yscale('log')
-        plt.xlabel('Number of samples (n)')
-        plt.ylabel('Time (seconds)')
-        plt.title(f'{model_type.capitalize()} Regression Performance Comparison')
-        plt.legend()
-        plt.grid(True, which='both', linestyle='--', alpha=0.6)
-
-        # Save plot
-        plt.tight_layout()
-        plt.savefig(Path(output_dir) / f"{model_type}_time_comparison.png", dpi=300)
-        plt.close()
-
-        # Create accuracy comparison plots (MSE)
-        mse_data = []
-
-        for size_key, trials in results[model_type].items():
-            n_samples, n_features = map(int, size_key.replace('n', '').replace('k', '').split('_'))
-
-            # Average over trials
-            for trial in trials:
-                for lib in trial:
-                    if lib != 'true' and 'mse' in trial[lib]:
-                        mse_data.append({
-                            'Library': lib,
-                            'n_samples': n_samples,
-                            'n_features': n_features,
-                            'MSE': trial[lib]['mse']
-                        })
-
-        # Convert to DataFrame
-        mse_df = pd.DataFrame(mse_data)
-
-        if not mse_df.empty:
-            # Create MSE comparison plots
-            plt.figure(figsize=(12, 8))
-
-            for lib in mse_df['Library'].unique():
-                lib_data = mse_df[mse_df['Library'] == lib]
-
-                for n_features in lib_data['n_features'].unique():
-                    subset = lib_data[lib_data['n_features'] == n_features]
-                    if not subset.empty and not subset['MSE'].isna().all():
-                        plt.plot(subset['n_samples'], subset['MSE'],
-                                marker='o', label=f"{lib} (k={n_features})")
-
-            plt.xscale('log')
-            plt.yscale('log')
-            plt.xlabel('Number of samples (n)')
-            plt.ylabel('Mean Squared Error')
-            plt.title(f'{model_type.capitalize()} Regression Accuracy Comparison')
-            plt.legend()
-            plt.grid(True, which='both', linestyle='--', alpha=0.6)
-
-            # Save plot
-            plt.tight_layout()
-            plt.savefig(Path(output_dir) / f"{model_type}_mse_comparison.png", dpi=300)
-            plt.close()
-
-    # Create summary table as CSV
-    summary_data = []
-
-    for model_type in results:
-        for size_key, trials in results[model_type].items():
-            n_samples, n_features = map(int, size_key.replace('n', '').replace('k', '').split('_'))
-
-            # Average over trials
-            lib_metrics = {}
-
-            for lib in set(lib for trial in trials for lib in trial if lib != 'true'):
-                times = []
-                mses = []
-
-                for trial in trials:
-                    if lib in trial:
-                        times.append(trial[lib]['time'])
-                        if 'mse' in trial[lib]:
-                            mses.append(trial[lib]['mse'])
-
-                lib_metrics[lib] = {
-                    'avg_time': np.nanmean(times) if times else np.nan,
-                    'avg_mse': np.nanmean(mses) if mses else np.nan
-                }
-
-            # Find fastest library
-            valid_times = {lib: metrics['avg_time']
-                        for lib, metrics in lib_metrics.items()
-                        if not np.isnan(metrics['avg_time'])}
-
-            fastest_lib = min(valid_times.items(), key=lambda x: x[1])[0] if valid_times else None
-
-            # Add to summary data
-            for lib, metrics in lib_metrics.items():
-                summary_data.append({
-                    'Model': model_type.capitalize(),
-                    'n_samples': n_samples,
-                    'n_features': n_features,
-                    'Library': lib,
-                    'Avg Time (s)': metrics['avg_time'],
-                    'Avg MSE': metrics['avg_mse'],
-                    'Is Fastest': lib == fastest_lib
-                })
-
-    # Create summary DataFrame and save as CSV
-    summary_df = pd.DataFrame(summary_data)
-    summary_df.to_csv(Path(output_dir) / "benchmark_summary.csv", index=False)
-
-
 def main():
     """Main function to run benchmarks"""
     parser = argparse.ArgumentParser(description='Run performance benchmarks for pyensmallen')
 
-    parser.add_argument('--sizes', type=str, default="1000,10;10000,20;100000,10",
+    parser.add_argument('--sizes', type=str, default="1_000,5;10_000,5;100_000,5; 1_000_000,5; 10_000_000,5; 1_000,20;10_000,20;100_000,20; 1_000_000,20; 10_000_000,20",
                       help='Semicolon-separated list of comma-separated n_samples,n_features pairs')
 
     parser.add_argument('--models', type=str, default="linear,logistic,poisson",
@@ -817,7 +653,7 @@ def main():
     parser.add_argument('--libraries', type=str, default="pyensmallen,scipy,statsmodels",
                       help='Comma-separated list of libraries to benchmark')
 
-    parser.add_argument('--trials', type=int, default=1,
+    parser.add_argument('--trials', type=int, default=20,
                       help='Number of trials to run for each configuration')
 
     parser.add_argument('--output', type=str, default='.',
@@ -842,9 +678,6 @@ def main():
         n_trials=args.trials,
         output_dir=args.output
     )
-
-    # Create summary plots
-    create_summary_plots(results, output_dir=args.output)
 
     print(f"Benchmarks complete. Results saved to {args.output}")
 
