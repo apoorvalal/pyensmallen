@@ -19,7 +19,7 @@ Across libraries:
 - JAX + optax (where applicable)
 - CVXPY (where applicable)
 """
-
+#%%
 import numpy as np
 import pandas as pd
 import time
@@ -35,26 +35,7 @@ import json
 
 import tqdm
 
-# Check if JAX is available and import it
-try:
-    import jax
-    import jax.numpy as jnp
-    import optax
-    HAS_JAX = True
-    # Enable double precision
-    jax.config.update("jax_enable_x64", True)
-except ImportError:
-    HAS_JAX = False
-    print("JAX not found, skipping JAX benchmarks")
-
-# Check if CVXPY is available and import it
-try:
-    import cvxpy as cp
-    HAS_CVXPY = True
-except ImportError:
-    HAS_CVXPY = False
-    print("CVXPY not found, skipping CVXPY benchmarks")
-
+#%%
 
 def linear_objective(params, gradient, X, y):
     """Linear regression objective function for pyensmallen"""
@@ -130,9 +111,8 @@ def generate_data(model_type, n_samples, n_features, seed=42):
 
     else:
         raise ValueError(f"Unknown model type: {model_type}")
-
     return X, y, true_params
-
+# %%
 
 def benchmark_linear_regression(X, y, true_params, libraries=None):
     """Benchmark linear regression across different libraries
@@ -249,7 +229,7 @@ def benchmark_linear_regression(X, y, true_params, libraries=None):
     }
 
     return results
-
+# %%
 
 def benchmark_logistic_regression(X, y, true_params, libraries=None):
     """Benchmark logistic regression across different libraries
@@ -644,8 +624,14 @@ def main():
     """Main function to run benchmarks"""
     parser = argparse.ArgumentParser(description='Run performance benchmarks for pyensmallen')
 
-    parser.add_argument('--sizes', type=str, default="1_000,5;10_000,5;100_000,5; 1_000_000,5; 10_000_000,5; 1_000,20;10_000,20;100_000,20; 1_000_000,20; 10_000_000,20",
-                      help='Semicolon-separated list of comma-separated n_samples,n_features pairs')
+    parser.add_argument('--sizes', type=str,
+            default="""
+            1_000,5;10_000,5;100_000,5; 1_000_000,5; 10_000_000,5;
+            1_000,20;10_000,20;100_000,20; 1_000_000,20; 10_000_000,20;
+            1_000,50;10_000,50;100_000,50; 1_000_000,50;
+            1_000,100;10_000,100;100_000,100; 1_000_000,100
+            """.replace('\n', '').strip(),
+            help='Semicolon-separated list of comma-separated n_samples,n_features pairs')
 
     parser.add_argument('--models', type=str, default="linear,logistic,poisson",
                       help='Comma-separated list of model types to benchmark')
