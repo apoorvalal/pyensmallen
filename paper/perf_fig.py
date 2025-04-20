@@ -11,7 +11,7 @@ sns.set_context("talk")
 
 ######################################################################
 # %%
-with open("benchmark_results_20250331_215345.json", "r") as f:
+with open("benchmark_results_20250408_000429.json", "r") as f:
     results = json.load(f)
 
 # %%
@@ -54,13 +54,30 @@ agg_df = all_res.groupby(["model", "lib", "n", "k"]).agg(
 ).reset_index()
 
 # %%
-agg_df.n.unique()
-
-# %%
 # Create a combined column for lib (hue) and k (style)
 agg_df['k'] = agg_df['k'].astype(str)  # Ensure k is a string for style differentiation
 # %%
+g1 = sns.FacetGrid(all_res, col='model', row = "k",
+                   height=6, aspect=1.2)
+g1.map_dataframe(
+    sns.violinplot,
+    x='n',
+    y='time',
+    hue='lib',
+    palette = 'Set1',
+    # inner="quart",
+    fill=False,
+)
+g1.map(plt.grid, linestyle='--', alpha=0.5)
+g1.add_legend(title='Library, # of Features')
+g1.set_axis_labels('Sample Size', 'Runtime (seconds)')
+g1.set_titles('Model: {col_name} | # of Features: {row_name}')
 
+# Set y and x axis to log scale
+g1.set(yscale='log')
+g1.savefig('benchmark_time_dist.png', dpi=300)
+
+# %%
 # Plot 1: Time mean faceted by model
 g1 = sns.FacetGrid(agg_df.assign(z = ""), col='model', row = "k", height=6, aspect=1.2)
 g1.map_dataframe(
@@ -71,11 +88,12 @@ g1.map_dataframe(
     style='z',
     markers=True,
     dashes=True,
+    palette = 'Set1',
 )
 # add grid lines
 g1.map(plt.grid, linestyle='--', alpha=0.5)
 g1.add_legend(title='Library, # of Features')
-g1.set_axis_labels('Sample Size (log scale)', 'Runtime (seconds, log scale)')
+g1.set_axis_labels('Sample Size', 'Runtime (seconds)')
 g1.set_titles('Model: {col_name} | # of Features: {row_name}')
 
 # Set y and x axis to log scale
@@ -86,24 +104,16 @@ g1.savefig('benchmark_time.png', dpi=300)
 # Plot 1: Time mean faceted by model
 g2 = sns.FacetGrid(agg_df.assign(z = ""), col='model', row = "k", height=6, aspect=1.2)
 g2.map_dataframe(
-    sns.lineplot,
+    sns.barplot,
     x='n',
     y='converged_mean',
     hue='lib',
-    style='z',
-    markers=True,
-    dashes=True,
+    palette = 'Set1',
 )
 # add grid lines
 g2.map(plt.grid, linestyle='--', alpha=0.5)
 g2.add_legend(title='Library, # of Features')
-g2.set_axis_labels('Number of Samples (log scale)', 'prop converged')
+g2.set_axis_labels('Number of Samples', 'prop converged')
 g2.set_titles('Model: {col_name} | # of Features: {row_name}')
-
-# Set y and x axis to log scale
-g2.set(xscale='log')
 g2.savefig('benchmark_conv.png', dpi=300)
 # %%
-
-
-
