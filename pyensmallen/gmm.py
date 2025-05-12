@@ -1,5 +1,6 @@
 from typing import Callable, Optional, Union
 
+import warnings
 import functools
 
 import numpy as np
@@ -14,7 +15,7 @@ try:
 
     jax.config.update("jax_enable_x64", True)
 except ImportError:
-    raise ImportError("JAX is not installed. Please install JAX to use this module.")
+    warnings.warn("JAX is not installed. Please install JAX to use the GMM submodule.")
 
 
 class EnsmallenEstimator:
