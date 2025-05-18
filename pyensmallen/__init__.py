@@ -23,6 +23,7 @@ from .gmm import EnsmallenEstimator
 __all__ = [
     "L_BFGS",
     "FrankWolfe",
+    "SimplexFrankWolfe",
     "Adam",
     "AdaMax",
     "AMSGrad",
