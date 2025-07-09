@@ -1,3 +1,4 @@
+import warnings
 from typing import Callable, Optional, Union
 
 import functools
@@ -14,7 +15,13 @@ try:
 
     jax.config.update("jax_enable_x64", True)
 except ImportError:
-    raise ImportError("JAX is not installed. Please install JAX to use this module.")
+    warnings.warn(
+        "JAX is not installed. JAX autodifferentiation will not be available. "
+        "Install JAX to enable autodiff support for GMM estimation.",
+        ImportWarning,
+    )
+    jax = None
+    jnp = None
 
 
 class EnsmallenEstimator:
@@ -184,15 +191,113 @@ class EnsmallenEstimator:
                 print(f"Error computing standard errors: {e}")
             self.std_errors_ = None
 
+    @staticmethod
+    def iv_moment(
+        z: Union[np.ndarray, jnp.ndarray],
+        y: Union[np.ndarray, jnp.ndarray],
+        x: Union[np.ndarray, jnp.ndarray],
+        beta: Union[np.ndarray, jnp.ndarray],
+    ) -> Union[np.ndarray, jnp.ndarray]:
+        """
+        Standard IV moment function: z_i * (y_i - x_i'β).
+        Works with both NumPy and JAX arrays.
+
+        Args:
+            z: Instrument matrix
+            y: Outcome vector
+            x: Covariate matrix (including intercept)
+            beta: Parameter vector
+
+        Returns:
+            Matrix of moment conditions
+        """
+        if isinstance(z, jnp.ndarray):
+            # JAX implementation
+            residuals = y - jnp.dot(x, beta)
+            return z * residuals[:, jnp.newaxis]
+        else:
+            # NumPy implementation
+            return z * (y - x @ beta)[:, np.newaxis]
+
+    ######################################################################
+    def summary(
+        self,
+        prec: int = 4,
+        param_names: Optional[list] = None,
+    ) -> pd.DataFrame:
+        """
+        Generate summary statistics for the fitted model.
+
+        Args:
+            prec: Precision for rounding results
+
+        Returns:
+            DataFrame with model summary statistics
+        """
+        if not hasattr(self, "theta_") or self.std_errors_ is None:
+            raise ValueError("Model must be fitted with valid standard errors first")
+
+        # Calculate t-statistics and p-values
+        t_stats = self.theta_ / self.std_errors_
+        p_values = 2 * (1 - scipy.stats.norm.cdf(np.abs(t_stats)))
+
+        # 95% confidence intervals
+        ci_lower = self.theta_ - scipy.stats.norm.ppf(0.975) * self.std_errors_
+        ci_upper = self.theta_ + scipy.stats.norm.ppf(0.975) * self.std_errors_
+
+        # Create parameter names
+        if param_names is None:
+            param_names = [f"θ_{i}" for i in range(len(self.theta_))]
+
+        # Create summary DataFrame
+        result = pd.DataFrame(
+            {
+                "parameter": param_names,
+                "coef": np.round(self.theta_, prec),
+                "std err": np.round(self.std_errors_, prec),
+                "t": np.round(t_stats, prec),
+                "p-value": np.round(p_values, prec),
+                "[0.025": np.round(ci_lower, prec),
+                "0.975]": np.round(ci_upper, prec),
+            }
+        )
+
+        # Add bootstrap standard errors if available
+        if hasattr(self, "bootstrap_std_errors_"):
+            result["boot_se"] = np.round(self.bootstrap_std_errors_, prec)
+            result["ratio"] = np.round(
+                self.bootstrap_std_errors_ / self.std_errors_, prec
+            )
+
+        return result
+
     def compute_asymptotic_variance(self) -> None:
         """
         Compute asymptotic variance and standard errors.
-        """
         # Compute Jacobian of moment conditions
+        Compute asymptotic variance-covariance matrix and standard errors.
+        This version is robust to the choice of weighting matrix.
+        """
+        # 1. Jacobian of moment conditions: G = E[∂g/∂β']
         self.Gamma_ = self.jacobian_moment_cond()
 
-        # Asymptotic variance: (G'WG)^(-1)
-        self.vtheta_ = np.linalg.inv(self.Gamma_.T @ self.W_ @ self.Gamma_)
+        # 2. Final moments and variance of moments: Ω = Var(g_i)
+        final_moments = self.moment_cond(self.z_, self.y_, self.x_, self.theta_)
+        self.Omega_ = (1 / self.n_) * (final_moments.T @ final_moments)
+
+        # 3. Final weighting matrix W (set during the last optimization step)
+        G, W, Omega = self.Gamma_, self.W_, self.Omega_
+
+        # 4. Assemble the sandwich formula: (G'WG)⁻¹ (G'WΩWG) (G'WG)⁻¹
+        try:
+            inv_GWG = np.linalg.inv(G.T @ W @ G)
+        except np.linalg.LinAlgError:
+            raise np.linalg.LinAlgError(
+                "G'WG is singular. The model may be underidentified."
+            )
+
+        meat = G.T @ W @ Omega @ W @ G
+        self.vtheta_ = inv_GWG @ meat @ inv_GWG
 
         # Standard errors: sqrt(diag(vtheta) / n)
         self.std_errors_ = np.sqrt(np.diag(self.vtheta_) / self.n_)
@@ -258,7 +363,11 @@ class EnsmallenEstimator:
 
         # Compute estimated M matrix (defined in the method description)
         # M = (Gamma'WGamma)^(-1) * Gamma'W
-        M = self.vtheta_ @ self.Gamma_.T @ self.W_
+
+        G, W = self.Gamma_, self.W_
+        inv_GWG = np.linalg.inv(G.T @ W @ G)
+        M = -inv_GWG @ G.T @ W
+
 
         # Compute the score functions for each observation
         # Z_i = g(X_i, theta)
@@ -390,86 +499,6 @@ class EnsmallenEstimator:
         estimator.fit(z_boot, y_boot, x_boot)
 
         return estimator.theta_
-
-    @staticmethod
-    def iv_moment(
-        z: Union[np.ndarray, jnp.ndarray],
-        y: Union[np.ndarray, jnp.ndarray],
-        x: Union[np.ndarray, jnp.ndarray],
-        beta: Union[np.ndarray, jnp.ndarray],
-    ) -> Union[np.ndarray, jnp.ndarray]:
-        """
-        Standard IV moment function: z_i * (y_i - x_i'β).
-        Works with both NumPy and JAX arrays.
-
-        Args:
-            z: Instrument matrix
-            y: Outcome vector
-            x: Covariate matrix (including intercept)
-            beta: Parameter vector
-
-        Returns:
-            Matrix of moment conditions
-        """
-        if isinstance(z, jnp.ndarray):
-            # JAX implementation
-            residuals = y - jnp.dot(x, beta)
-            return z * residuals[:, jnp.newaxis]
-        else:
-            # NumPy implementation
-            return z * (y - x @ beta)[:, np.newaxis]
-
-    ######################################################################
-    def summary(
-        self,
-        prec: int = 4,
-        param_names: Optional[list] = None,
-    ) -> pd.DataFrame:
-        """
-        Generate summary statistics for the fitted model.
-
-        Args:
-            prec: Precision for rounding results
-
-        Returns:
-            DataFrame with model summary statistics
-        """
-        if not hasattr(self, "theta_") or self.std_errors_ is None:
-            raise ValueError("Model must be fitted with valid standard errors first")
-
-        # Calculate t-statistics and p-values
-        t_stats = self.theta_ / self.std_errors_
-        p_values = 2 * (1 - scipy.stats.norm.cdf(np.abs(t_stats)))
-
-        # 95% confidence intervals
-        ci_lower = self.theta_ - scipy.stats.norm.ppf(0.975) * self.std_errors_
-        ci_upper = self.theta_ + scipy.stats.norm.ppf(0.975) * self.std_errors_
-
-        # Create parameter names
-        if param_names is None:
-            param_names = [f"θ_{i}" for i in range(len(self.theta_))]
-
-        # Create summary DataFrame
-        result = pd.DataFrame(
-            {
-                "parameter": param_names,
-                "coef": np.round(self.theta_, prec),
-                "std err": np.round(self.std_errors_, prec),
-                "t": np.round(t_stats, prec),
-                "p-value": np.round(p_values, prec),
-                "[0.025": np.round(ci_lower, prec),
-                "0.975]": np.round(ci_upper, prec),
-            }
-        )
-
-        # Add bootstrap standard errors if available
-        if hasattr(self, "bootstrap_std_errors_"):
-            result["boot_se"] = np.round(self.bootstrap_std_errors_, prec)
-            result["ratio"] = np.round(
-                self.bootstrap_std_errors_ / self.std_errors_, prec
-            )
-
-        return result
 
     ######################################################################
     # internals, jitted functions

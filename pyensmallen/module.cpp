@@ -5,7 +5,9 @@
 #include "newton_type.hpp"
 #include "constrained.hpp"
 #include "first_order.hpp"
+
 #include "report.hpp"
+
 namespace py = pybind11;
 
 PYBIND11_MODULE(_pyensmallen, m)
@@ -45,7 +47,7 @@ PYBIND11_MODULE(_pyensmallen, m)
           py::arg("f"),
           py::arg("initial_point"),
           py::arg("report") = nullptr);
-    
+
   
   // FrankWolfe - constrained optimization
   py::class_<PyFrankWolfe>(m, "FrankWolfe")
@@ -262,4 +264,5 @@ PYBIND11_MODULE(_pyensmallen, m)
          py::arg("iterationsPercentageIn") = 0.1,
          py::arg("outputMatrixSizeIn") = 4
     );
+
 }
