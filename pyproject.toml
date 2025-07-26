@@ -29,3 +29,7 @@ gmm = ["jax", "jaxlib"]
 
 [tool.setuptools_scm]
 write_to = "pyensmallen/_version.py"
+write_to_template = '__version__ = "{version}"'
+# Also write a simple VERSION file for meson
+fallback_version = "0.0.0"
+
