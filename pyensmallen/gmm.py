@@ -9,19 +9,10 @@ import scipy
 
 from . import _pyensmallen as pe
 
-try:
-    import jax
-    import jax.numpy as jnp
+import jax
+import jax.numpy as jnp
 
-    jax.config.update("jax_enable_x64", True)
-except ImportError:
-    warnings.warn(
-        "JAX is not installed. JAX autodifferentiation will not be available. "
-        "Install JAX to enable autodiff support for GMM estimation.",
-        ImportWarning,
-    )
-    jax = None
-    jnp = None
+jax.config.update("jax_enable_x64", True)
 
 
 class EnsmallenEstimator:
@@ -41,6 +32,7 @@ class EnsmallenEstimator:
             moment_cond: Function that computes moment conditions. Should be JAX-compatible.
             weighting_matrix: Either "optimal" for two-step GMM or a custom weighting matrix
         """
+        
         self.moment_cond = moment_cond
         self.weighting_matrix = weighting_matrix
 

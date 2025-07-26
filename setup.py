@@ -6,7 +6,6 @@ from setuptools import Extension, find_packages, setup
 from setuptools.command.build_ext import build_ext
 from setuptools.dist import Distribution
 
-__version__ = "0.2.9"
 
 
 class BinaryDistribution(Distribution):
@@ -99,14 +98,14 @@ class BuildExt(build_ext):
 
 setup(
     name="pyensmallen",
-    version=__version__,
     author="Apoorva Lal",
     author_email="lal.apoorva@gmail.com",
     description="Python bindings for the ensmallen optimization library",
     long_description="",
     ext_modules=ext_modules,
     install_requires=["pybind11>=2.4"],
-    setup_requires=["pybind11>=2.4"],
+    setup_requires=["pybind11>=2.4", "setuptools-scm"],
+    use_scm_version=True,
     cmdclass={"build_ext": BuildExt},
     packages=find_packages(),
     include_package_data=True,
