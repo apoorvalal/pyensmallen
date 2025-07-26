@@ -5,6 +5,7 @@
 #include "newton_type.hpp"
 #include "constrained.hpp"
 #include "first_order.hpp"
+#include "additional_optimizers.hpp"
 
 namespace py = pybind11;
 
@@ -245,4 +246,81 @@ PYBIND11_MODULE(_pyensmallen, m)
                     &PyAdamType<ens::NadamUpdate>::getResetPolicy,
                     &PyAdamType<ens::NadamUpdate>::setResetPolicy)
       .def("optimize", &PyAdamType<ens::NadamUpdate>::Optimize);
+
+  // Coordinate Descent optimizers
+  py::class_<PyCyclicDescent>(m, "CyclicDescent")
+      .def(py::init<double, size_t, double, size_t>(),
+           py::arg("stepSize") = 0.01,
+           py::arg("maxIterations") = 100000,
+           py::arg("tolerance") = 1e-5,
+           py::arg("updateInterval") = 1000)
+      .def_property("stepSize", &PyCyclicDescent::getStepSize,
+                    &PyCyclicDescent::setStepSize)
+      .def_property("maxIterations", &PyCyclicDescent::getMaxIterations,
+                    &PyCyclicDescent::setMaxIterations)
+      .def_property("tolerance", &PyCyclicDescent::getTolerance,
+                    &PyCyclicDescent::setTolerance)
+      .def_property("updateInterval", &PyCyclicDescent::getUpdateInterval,
+                    &PyCyclicDescent::setUpdateInterval)
+      .def("optimize", &PyCyclicDescent::Optimize<PyObjectiveFunction>);
+
+  py::class_<PyRandomDescent>(m, "RandomDescent")
+      .def(py::init<double, size_t, double, size_t>(),
+           py::arg("stepSize") = 0.01,
+           py::arg("maxIterations") = 100000,
+           py::arg("tolerance") = 1e-5,
+           py::arg("updateInterval") = 1000)
+      .def_property("stepSize", &PyRandomDescent::getStepSize,
+                    &PyRandomDescent::setStepSize)
+      .def_property("maxIterations", &PyRandomDescent::getMaxIterations,
+                    &PyRandomDescent::setMaxIterations)
+      .def_property("tolerance", &PyRandomDescent::getTolerance,
+                    &PyRandomDescent::setTolerance)
+      .def_property("updateInterval", &PyRandomDescent::getUpdateInterval,
+                    &PyRandomDescent::setUpdateInterval)
+      .def("optimize", &PyRandomDescent::Optimize<PyObjectiveFunction>);
+
+  py::class_<PyGreedyDescent>(m, "GreedyDescent")
+      .def(py::init<double, size_t, double, size_t>(),
+           py::arg("stepSize") = 0.01,
+           py::arg("maxIterations") = 100000,
+           py::arg("tolerance") = 1e-5,
+           py::arg("updateInterval") = 1000)
+      .def_property("stepSize", &PyGreedyDescent::getStepSize,
+                    &PyGreedyDescent::setStepSize)
+      .def_property("maxIterations", &PyGreedyDescent::getMaxIterations,
+                    &PyGreedyDescent::setMaxIterations)
+      .def_property("tolerance", &PyGreedyDescent::getTolerance,
+                    &PyGreedyDescent::setTolerance)
+      .def_property("updateInterval", &PyGreedyDescent::getUpdateInterval,
+                    &PyGreedyDescent::setUpdateInterval)
+      .def("optimize", &PyGreedyDescent::Optimize<PyObjectiveFunction>);
+
+  // Simulated Annealing optimizer
+  py::class_<PySimulatedAnnealingDefault>(m, "SimulatedAnnealing")
+      .def(py::init<size_t, double, size_t, size_t, double, size_t, double, double, double>(),
+           py::arg("maxIterations") = 1000000,
+           py::arg("initT") = 10000.0,
+           py::arg("initMoves") = 1000,
+           py::arg("moveCtrlSweep") = 100,
+           py::arg("tolerance") = 1e-5,
+           py::arg("maxToleranceSweep") = 3,
+           py::arg("maxMoveCoef") = 20,
+           py::arg("initMoveCoef") = 0.3,
+           py::arg("gain") = 0.3)
+      .def_property("maxIterations", &PySimulatedAnnealingDefault::getMaxIterations,
+                    &PySimulatedAnnealingDefault::setMaxIterations)
+      .def_property("temperature", &PySimulatedAnnealingDefault::getTemperature,
+                    &PySimulatedAnnealingDefault::setTemperature)
+      .def_property("initMoves", &PySimulatedAnnealingDefault::getInitMoves,
+                    &PySimulatedAnnealingDefault::setInitMoves)
+      .def_property("moveCtrlSweep", &PySimulatedAnnealingDefault::getMoveCtrlSweep,
+                    &PySimulatedAnnealingDefault::setMoveCtrlSweep)
+      .def_property("tolerance", &PySimulatedAnnealingDefault::getTolerance,
+                    &PySimulatedAnnealingDefault::setTolerance)
+      .def_property("maxToleranceSweep", &PySimulatedAnnealingDefault::getMaxToleranceSweep,
+                    &PySimulatedAnnealingDefault::setMaxToleranceSweep)
+      .def_property("gain", &PySimulatedAnnealingDefault::getGain,
+                    &PySimulatedAnnealingDefault::setGain)
+      .def("optimize", &PySimulatedAnnealingDefault::Optimize<PyObjectiveFunction>);
 }

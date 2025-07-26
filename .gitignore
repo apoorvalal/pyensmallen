@@ -166,3 +166,4 @@ cython_debug/
 .DS_Store
 .claude/settings.local.json
 tmp.md
+ensmallen/*
