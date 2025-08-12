@@ -7,8 +7,6 @@
 #include <streambuf>
 
 
-
-
 namespace ens {
 
 class NullBuffer : public std::streambuf
@@ -146,7 +144,7 @@ void EndOptimization(OptimizerType& optimizer,
 {
 
   
-  output << "Modified Optimization Report" << std::endl;
+  output << "**Optimization Report**" << std::endl;
   output << std::string(80, '-') << std::endl << std::endl;
   
   std::streamsize streamPrecision = output.precision(4);
