@@ -17,9 +17,8 @@ import os
 
 from ._pyensmallen import *
 from .losses import linear_obj, logistic_obj, poisson_obj
-from .gmm import EnsmallenEstimator
 
-
+# Core optimizers and loss functions (always available)
 __all__ = [
     "L_BFGS",
     "FrankWolfe",
@@ -32,5 +31,12 @@ __all__ = [
     "linear_obj",
     "logistic_obj",
     "poisson_obj",
-    "EnsmallenEstimator",
 ]
+
+# Conditionally import GMM functionality (requires JAX)
+try:
+    from .gmm import EnsmallenEstimator
+    __all__.append("EnsmallenEstimator")
+except ImportError:
+    # JAX not available - install with: pip install pyensmallen[gmm]
+    pass

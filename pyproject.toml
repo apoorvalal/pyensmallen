@@ -5,6 +5,7 @@ requires = [
     "pybind11>=2.4",
     "meson-python",
     "numpy",
+    "setuptools-scm",
 ]
 build-backend = "mesonpy"
 
@@ -13,9 +14,7 @@ skip = ["cp36-*", "*-win32", "*-manylinux_i686"]
 
 [project]
 name = 'pyensmallen'
-
-version = '0.2.9'
-
+dynamic = ["version"]
 description = 'Python bindings for the Ensmallen library.'
 readme = 'README.md'
 requires-python = '>=3.10'
@@ -24,3 +23,13 @@ authors = [
     { name = 'Apoorva Lal', email = 'lal.apoorva@gmail.com' },
     { name = 'Matthew Wardrop', email = 'mpwardrop@gmail.com' },
 ]
+
+[project.optional-dependencies]
+gmm = ["jax", "jaxlib"]
+
+[tool.setuptools_scm]
+write_to = "pyensmallen/_version.py"
+write_to_template = '__version__ = "{version}"'
+# Also write a simple VERSION file for meson
+fallback_version = "0.0.0"
+
