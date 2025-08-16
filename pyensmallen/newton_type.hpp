@@ -1,6 +1,7 @@
 #pragma once
 
 #include "utils.hpp"
+#include "report.hpp"
 
 // Wrapper for L-BFGS optimizer
 class PyL_BFGS
@@ -79,19 +80,21 @@ public:
   void setMaxStep(double maxStep) { optimizer.MaxStep() = maxStep; }
 
   py::array_t<double> Optimize(DifferentiableFunction f,
-                               py::array_t<double> initial_point)
-  {
-    py::buffer_info buf_info = initial_point.request();
-    arma::vec arma_initial_point(static_cast<double *>(buf_info.ptr),
-                                 buf_info.shape[0], false, true);
+                                py::array_t<double> initial_point, ens::PyReport* report = nullptr)
+    {
+      py::buffer_info buf_info = initial_point.request();
+      arma::vec arma_initial_point(static_cast<double *>(buf_info.ptr),
+                                  buf_info.shape[0], false, true);
 
-    DifferentiableFunctionWrapper fw(f);
-    arma::vec result = arma_initial_point;
+      DifferentiableFunctionWrapper fw(f);
+      arma::vec result = arma_initial_point;
+      if (report)
+        optimizer.Optimize(fw, result, *report);
+      else
+        optimizer.Optimize(fw, result);
+      return py::array_t<double>(result.n_elem, result.memptr());
 
-    optimizer.Optimize(fw, result);
-
-    return py::array_t<double>(result.n_elem, result.memptr());
-  }
+    }
 
 private:
   ens::L_BFGS optimizer;
