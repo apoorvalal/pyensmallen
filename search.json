@@ -1,0 +1,226 @@
+[
+  {
+    "objectID": "notebooks.html",
+    "href": "notebooks.html",
+    "title": "Notebooks",
+    "section": "",
+    "text": "The Quarto site includes executed versions of the core Python notebooks and links to the heavier benchmark notebooks.\n\n\nThese notebooks are part of the Quarto build and are rendered as documentation pages:\n\nexample ERM-style linear, logistic, and Poisson regression examples.\nbanana Optimizer demonstration on Rosenbrock’s banana function.\ngmm Linear IV GMM, nonlinear logit-style GMM, and bootstrap-based inference.\nautodiff_mnl JAX autodiff for multinomial logit with pyensmallen as the optimizer backend.\n\n\n\n\nThese remain in the repository but are not part of the always-executed Quarto build:\n\nlikelihood_comparison.ipynb Large benchmark notebook comparing pyensmallen against SciPy, statsmodels, CVXPY, and JAX.\nlikelihood_comparison_estimators.ipynb Benchmark notebook using the estimator-class API.\nsynth.ipynb Synthetic-control style balancing weights and simulation work.\ncompare_r.ipynb R notebook, not part of the Python-backed docs build.\n\n\n\n\nThe Quarto documentation build executes the rendered notebooks above. This keeps the core tutorial material live and testable without forcing every expensive benchmark notebook into the site build.\n\n\n\nInstall the full dependency set:\nuv pip install --python .venv/bin/python --no-build-isolation -e \".[full]\"\nThen launch Jupyter:\n.venv/bin/python -m jupyter lab"
+  },
+  {
+    "objectID": "notebooks.html#rendered-in-the-site",
+    "href": "notebooks.html#rendered-in-the-site",
+    "title": "Notebooks",
+    "section": "",
+    "text": "These notebooks are part of the Quarto build and are rendered as documentation pages:\n\nexample ERM-style linear, logistic, and Poisson regression examples.\nbanana Optimizer demonstration on Rosenbrock’s banana function.\ngmm Linear IV GMM, nonlinear logit-style GMM, and bootstrap-based inference.\nautodiff_mnl JAX autodiff for multinomial logit with pyensmallen as the optimizer backend."
+  },
+  {
+    "objectID": "notebooks.html#source-only-notebooks",
+    "href": "notebooks.html#source-only-notebooks",
+    "title": "Notebooks",
+    "section": "",
+    "text": "These remain in the repository but are not part of the always-executed Quarto build:\n\nlikelihood_comparison.ipynb Large benchmark notebook comparing pyensmallen against SciPy, statsmodels, CVXPY, and JAX.\nlikelihood_comparison_estimators.ipynb Benchmark notebook using the estimator-class API.\nsynth.ipynb Synthetic-control style balancing weights and simulation work.\ncompare_r.ipynb R notebook, not part of the Python-backed docs build."
+  },
+  {
+    "objectID": "notebooks.html#build-behavior",
+    "href": "notebooks.html#build-behavior",
+    "title": "Notebooks",
+    "section": "",
+    "text": "The Quarto documentation build executes the rendered notebooks above. This keeps the core tutorial material live and testable without forcing every expensive benchmark notebook into the site build."
+  },
+  {
+    "objectID": "notebooks.html#running-notebooks-locally",
+    "href": "notebooks.html#running-notebooks-locally",
+    "title": "Notebooks",
+    "section": "",
+    "text": "Install the full dependency set:\nuv pip install --python .venv/bin/python --no-build-isolation -e \".[full]\"\nThen launch Jupyter:\n.venv/bin/python -m jupyter lab"
+  },
+  {
+    "objectID": "optimizers.html",
+    "href": "optimizers.html",
+    "title": "Optimizers",
+    "section": "",
+    "text": "The bindings expose low-level optimizer classes directly from ensmallen. These are useful when you want to optimize a custom objective instead of using the estimator wrappers.\n\n\n\n\nPrimary smooth optimizer for likelihood and M-estimation problems.\nUse when:\n\nthe objective is differentiable\nyou can evaluate the full objective and gradient\nyou want fast, stable convergence on moderate-dimensional parameter vectors\n\nExposed controls include:\n\nnumBasis\nmaxIterations\narmijoConstant\nwolfe\nminGradientNorm\nfactr\nmaxLineSearchTrials\nminStep\nmaxStep\n\nBasic pattern:\nimport numpy as np\nimport pyensmallen as pye\n\ndef objective(params, gradient):\n    gradient[:] = 2 * params\n    return float(np.dot(params, params))\n\nopt = pye.L_BFGS()\ntheta0 = np.array([1.0, -1.0])\ntheta_hat = opt.optimize(objective, theta0)\n\n\n\nConstrained first-order optimizer for smooth objectives over an L_p ball.\nUse when:\n\nyou want explicit norm constraints\nyou are using lasso, ridge, or elastic-net style feasible sets\nprojection-free updates are preferable to unconstrained optimization\n\n\n\n\nFrank-Wolfe variant specialized to simplex constraints.\nUse when:\n\ncoefficients must be nonnegative and sum to one\nyou are fitting synthetic-control or balancing-weight style models\n\n\n\n\nAvailable variants:\n\nAdam\nAdaMax\nAMSGrad\nOptimisticAdam\nNadam\n\nThese are currently exposed as low-level optimizers for differentiable objectives.\nUse when:\n\nyou want a first-order optimizer\nyour objective is noisy or harder to optimize with quasi-Newton methods\nyou are experimenting with iterative stochastic-style updates\n\nImportant note:\nThe current wrapper still treats the objective as a full-batch callable. So these optimizers are exposed, but the true mini-batch/separable-objective workflow is still thinner than it should be.\n\n\n\n\nIf you are fitting standard regression models, prefer:\n\nLinearRegression\nLogisticRegression\nPoissonRegression\n\nIf you are fitting a custom objective, or need to reproduce a low-level optimization setup from a notebook or paper, use the optimizer classes directly."
+  },
+  {
+    "objectID": "optimizers.html#available-optimizers",
+    "href": "optimizers.html#available-optimizers",
+    "title": "Optimizers",
+    "section": "",
+    "text": "Primary smooth optimizer for likelihood and M-estimation problems.\nUse when:\n\nthe objective is differentiable\nyou can evaluate the full objective and gradient\nyou want fast, stable convergence on moderate-dimensional parameter vectors\n\nExposed controls include:\n\nnumBasis\nmaxIterations\narmijoConstant\nwolfe\nminGradientNorm\nfactr\nmaxLineSearchTrials\nminStep\nmaxStep\n\nBasic pattern:\nimport numpy as np\nimport pyensmallen as pye\n\ndef objective(params, gradient):\n    gradient[:] = 2 * params\n    return float(np.dot(params, params))\n\nopt = pye.L_BFGS()\ntheta0 = np.array([1.0, -1.0])\ntheta_hat = opt.optimize(objective, theta0)\n\n\n\nConstrained first-order optimizer for smooth objectives over an L_p ball.\nUse when:\n\nyou want explicit norm constraints\nyou are using lasso, ridge, or elastic-net style feasible sets\nprojection-free updates are preferable to unconstrained optimization\n\n\n\n\nFrank-Wolfe variant specialized to simplex constraints.\nUse when:\n\ncoefficients must be nonnegative and sum to one\nyou are fitting synthetic-control or balancing-weight style models\n\n\n\n\nAvailable variants:\n\nAdam\nAdaMax\nAMSGrad\nOptimisticAdam\nNadam\n\nThese are currently exposed as low-level optimizers for differentiable objectives.\nUse when:\n\nyou want a first-order optimizer\nyour objective is noisy or harder to optimize with quasi-Newton methods\nyou are experimenting with iterative stochastic-style updates\n\nImportant note:\nThe current wrapper still treats the objective as a full-batch callable. So these optimizers are exposed, but the true mini-batch/separable-objective workflow is still thinner than it should be."
+  },
+  {
+    "objectID": "optimizers.html#relationship-to-estimator-classes",
+    "href": "optimizers.html#relationship-to-estimator-classes",
+    "title": "Optimizers",
+    "section": "",
+    "text": "If you are fitting standard regression models, prefer:\n\nLinearRegression\nLogisticRegression\nPoissonRegression\n\nIf you are fitting a custom objective, or need to reproduce a low-level optimization setup from a notebook or paper, use the optimizer classes directly."
+  },
+  {
+    "objectID": "notebooks/autodiff_mnl.html",
+    "href": "notebooks/autodiff_mnl.html",
+    "title": "pyensmallen + jax",
+    "section": "",
+    "text": "import jax\nimport jax.numpy as jnp\nimport numpy as np\nimport pyensmallen\nimport time\nimport optax\n\n# Set random seed for reproducibility\nnp.random.seed(0)\nkey = jax.random.PRNGKey(0)\n# Set the parameters\nK = 4  # number of classes\nD = 10  # number of features\nN = 10_000  # number of samples\n\n# Generate true coefficients (K categories, last category is reference with zeros)\ntrue_coeffs = np.random.randn(D, K)\ntrue_coeffs[:, -1] = 0  # Set last category coefficients to zero\n\n# Generate features\nX = np.random.randn(N, D)\n\n# Generate probabilities and labels\nlogits = X @ true_coeffs\nprobs = np.exp(logits) / np.sum(np.exp(logits), axis=1, keepdims=True)\ny = np.array([np.random.choice(K, p=p) for p in probs])\n\n# Convert data to JAX arrays\nX_jax = jax.device_put(X)\ny_jax = jax.device_put(y)\n# Define the multinomial logistic regression model\ndef multinomial_logit(params, X):\n    full_params = jnp.column_stack([params.reshape(D, K - 1), jnp.zeros((D, 1))])\n    return jax.nn.log_softmax(X @ full_params, axis=1)\n\n\n# Define the loss function (negative log-likelihood)\ndef loss(params, X, y):\n    logits = multinomial_logit(params, X)\n    return -jnp.mean(logits[jnp.arange(y.shape[0]), y])\n\n\n# Create JAX gradient function - autodiff!\ngrad_loss = jax.grad(loss)\n\n\n# Define the objective function for pyensmallen\ndef objective(params, gradient, X, y):\n    params_jax = jax.device_put(params.reshape(D, K - 1))\n    loss_value = loss(params_jax, X_jax, y_jax)\n    grad = grad_loss(params_jax, X_jax, y_jax)\n    gradient[:] = np.array(grad).flatten()\n    return float(loss_value)\n\n\n# Pyensmallen optimization\nstart_time = time.time()\noptimizer = pyensmallen.L_BFGS()\ninitial_params = np.random.randn(D * (K - 1))\nresult_ens = optimizer.optimize(\n    lambda params, gradient: objective(params, gradient, X_jax, y_jax), initial_params\n)\nens_time = time.time() - start_time\nestimated_coeffs_ens = np.column_stack([result_ens.reshape(D, K - 1), np.zeros((D, 1))])"
+  },
+  {
+    "objectID": "notebooks/autodiff_mnl.html#jax",
+    "href": "notebooks/autodiff_mnl.html#jax",
+    "title": "pyensmallen + jax",
+    "section": "Jax",
+    "text": "Jax\n\n# JAX optimization with Optax\nstart_time = time.time()\ninitial_params = jnp.array(initial_params.reshape(D, K - 1))\n\n# Define the Optax optimizer (using Adam as an example)\noptimizer = optax.adam(learning_rate=0.01)\nopt_state = optimizer.init(initial_params)\n\n\n@jax.jit\ndef step(params, opt_state, X, y):\n    loss_value, grads = jax.value_and_grad(loss)(params, X, y)\n    updates, opt_state = optimizer.update(grads, opt_state, params)\n    params = optax.apply_updates(params, updates)\n    return params, opt_state, loss_value\n\n\nparams = initial_params\nfor i in range(2000):\n    params, opt_state, _ = step(params, opt_state, X_jax, y_jax)\n\nestimated_coeffs_jax = jnp.column_stack([params, jnp.zeros((D, 1))])\njax_time = time.time() - start_time"
+  },
+  {
+    "objectID": "notebooks/autodiff_mnl.html#comparison",
+    "href": "notebooks/autodiff_mnl.html#comparison",
+    "title": "pyensmallen + jax",
+    "section": "comparison",
+    "text": "comparison\n\ntrue_coeffs.reshape(-1).shape\n\n(40,)\n\n\n\nnp.c_[true_coeffs.reshape(-1), estimated_coeffs_ens.reshape(-1), estimated_coeffs_jax.reshape(-1)]\n\narray([[ 1.76405235,  1.8157463 ,  1.8109074 ],\n       [ 0.40015721,  0.42656764,  0.42548736],\n       [ 0.97873798,  0.98794635,  0.98618829],\n       [ 0.        ,  0.        ,  0.        ],\n       [ 1.86755799,  1.8628787 ,  1.8578708 ],\n       [-0.97727788, -0.99718906, -0.99704143],\n       [ 0.95008842,  0.91213478,  0.91011453],\n       [ 0.        ,  0.        ,  0.        ],\n       [-0.10321885, -0.09043247, -0.09009397],\n       [ 0.4105985 ,  0.40371903,  0.40340355],\n       [ 0.14404357,  0.1855751 ,  0.18550714],\n       [ 0.        ,  0.        ,  0.        ],\n       [ 0.76103773,  0.80953626,  0.8079425 ],\n       [ 0.12167502,  0.16927964,  0.16907167],\n       [ 0.44386323,  0.42807023,  0.42753084],\n       [ 0.        ,  0.        ,  0.        ],\n       [ 1.49407907,  1.58021527,  1.57713197],\n       [-0.20515826, -0.13471932, -0.13484907],\n       [ 0.3130677 ,  0.33451144,  0.33372573],\n       [ 0.        ,  0.        ,  0.        ],\n       [-2.55298982, -2.57082937, -2.5637134 ],\n       [ 0.6536186 ,  0.69179848,  0.6927646 ],\n       [ 0.8644362 ,  0.86859013,  0.86924212],\n       [ 0.        ,  0.        ,  0.        ],\n       [ 2.26975462,  2.34909469,  2.34216164],\n       [-1.45436567, -1.47021206, -1.47031831],\n       [ 0.04575852, -0.01799869, -0.01972243],\n       [ 0.        ,  0.        ,  0.        ],\n       [ 1.53277921,  1.63790857,  1.63511849],\n       [ 1.46935877,  1.56287992,  1.56128166],\n       [ 0.15494743,  0.16244727,  0.16245115],\n       [ 0.        ,  0.        ,  0.        ],\n       [-0.88778575, -0.86998273, -0.86919838],\n       [-1.98079647, -1.94830402, -1.94675255],\n       [-0.34791215, -0.34480436, -0.34499855],\n       [ 0.        ,  0.        ,  0.        ],\n       [ 1.23029068,  1.25129001,  1.24912269],\n       [ 1.20237985,  1.17328927,  1.17191307],\n       [-0.38732682, -0.41164246, -0.41112207],\n       [ 0.        ,  0.        ,  0.        ]])\n\n\n\n# Compare results\nprint(\"Pyensmallen optimization time:\", ens_time)\nprint(\"JAX optimization time:\", jax_time)\n\nmae_ens = np.mean(np.abs(true_coeffs - estimated_coeffs_ens))\nmae_jax = np.mean(np.abs(true_coeffs - estimated_coeffs_jax))\n\nprint(\"\\nPyensmallen Mean Absolute Error:\", mae_ens)\nprint(\"JAX Mean Absolute Error:\", mae_jax)\n\nPyensmallen optimization time: 0.856609582901001\nJAX optimization time: 1.2342848777770996\n\nPyensmallen Mean Absolute Error: 0.026351136330546497\nJAX Mean Absolute Error: 0.02586046071016848\n\n\n\ndef predict(coeffs, X):\n    logits = X @ coeffs\n    return np.argmax(logits, axis=1)\n\n\naccuracy_ens = np.mean(predict(estimated_coeffs_ens, X) == y)\naccuracy_jax = np.mean(predict(estimated_coeffs_jax, X) == y)\n\nprint(\"\\nPyensmallen Accuracy:\", accuracy_ens)\nprint(\"JAX Accuracy:\", accuracy_jax)\n\nfinal_loss_ens = loss(jax.device_put(estimated_coeffs_ens[:, :-1]), X_jax, y_jax)\nfinal_loss_jax = loss(estimated_coeffs_jax[:, :-1], X_jax, y_jax)\n\nprint(\"\\nPyensmallen Final Loss:\", final_loss_ens)\nprint(\"JAX Final Loss:\", final_loss_jax)\n\n\nPyensmallen Accuracy: 0.7667\nJAX Accuracy: 0.76669997\n\nPyensmallen Final Loss: 0.5785731153707537\nJAX Final Loss: 0.5785740845996223"
+  },
+  {
+    "objectID": "notebooks/banana.html",
+    "href": "notebooks/banana.html",
+    "title": "Rosenbrock’s banana",
+    "section": "",
+    "text": "import numpy as np\nimport pyensmallen\n\\[\nf(x, y) = (a - x)^2 + b(y - x^2)^2\n\\]\nglobal optimum reached at \\((a, a^2)\\).\ndef rosenbrock(x, a=2):\n    return np.sum((a - x[:-1]) ** 2 + 100.0 * (x[1:] - x[:-1] ** 2) ** 2)\n\n\ndef rosenbrock_gradient(x, a=2):\n    grad = np.zeros_like(x)\n\n    # Gradient for the first element\n    grad[0] = -2 * (a - x[0]) - 400 * x[0] * (x[1] - x[0] ** 2)\n\n    # Gradient for the middle elements\n    grad[1:-1] = (\n        -2 * (a - x[1:-1])\n        + 200 * (x[1:-1] - x[:-2] ** 2)\n        - 400 * x[1:-1] * (x[2:] - x[1:-1] ** 2)\n    )\n\n    # Gradient for the last element\n    grad[-1] = 200 * (x[-1] - x[-2] ** 2)\n\n    return grad\n\n\ndef objective_function(x, grad):\n    grad[:] = rosenbrock_gradient(x)\n    return rosenbrock(x)"
+  },
+  {
+    "objectID": "notebooks/banana.html#bfgs",
+    "href": "notebooks/banana.html#bfgs",
+    "title": "Rosenbrock’s banana",
+    "section": "BFGS",
+    "text": "BFGS\n\n# Initialize L-BFGS optimizer\nlbfgs = pyensmallen.L_BFGS(numBasis=10, maxIterations=1000)\n\n# Initial guess\ninitial_x = np.array([-1.2, 1.0])\n\n# Optimize\nresult = lbfgs.optimize(objective_function, initial_x)\n\nprint(\"Optimized parameters:\", result)\nprint(\"Objective value:\", rosenbrock(result))\n\nOptimized parameters: [2. 4.]\nObjective value: 2.7026507009290854e-19\n\n\nGets to optimum exactly."
+  },
+  {
+    "objectID": "notebooks/banana.html#adam",
+    "href": "notebooks/banana.html#adam",
+    "title": "Rosenbrock’s banana",
+    "section": "Adam",
+    "text": "Adam\n\ninitial_w = np.random.randn(2)\n\n\nadam = pyensmallen.Adam(maxIterations=100_000)\nresult = adam.optimize(objective_function, initial_w)\nresult\n\narray([1.85451542, 3.43793444])\n\n\n\nadamax = pyensmallen.AdaMax(maxIterations=100_000)\nresult = adamax.optimize(objective_function, initial_w)\nresult\n\narray([1.95350408, 3.81607044])\n\n\n\na = pyensmallen.OptimisticAdam(maxIterations=100_000)\nresult = a.optimize(objective_function, initial_w)\nresult\n\narray([1.57420667, 2.47903451])\n\n\n\na = pyensmallen.AMSGrad(maxIterations=100_000)\nresult = a.optimize(objective_function, initial_w)\nresult\n\narray([1.58388282, 2.50739088])\n\n\n\na = pyensmallen.Nadam(maxIterations=100_000)\nresult = a.optimize(objective_function, initial_w)\nresult\n\narray([1.90698149, 3.63691274])"
+  },
+  {
+    "objectID": "notebooks/example.html",
+    "href": "notebooks/example.html",
+    "title": "Regression via ERM in pyensmallen",
+    "section": "",
+    "text": "import numpy as np\nimport pyensmallen as pe\nnp.random.seed(42)\nn, k = 1_000_000, 20\n\n# Linear Regression Data\nX_linear = np.random.randn(n, k)\nprint(true_params_linear := np.random.rand(k))\ny_linear = X_linear @ true_params_linear\n\n[0.51639859 0.94598022 0.23380001 0.55162275 0.97811966 0.24254699\n 0.64702478 0.70271041 0.26476461 0.77362184 0.7817448  0.36874977\n 0.72697004 0.06518613 0.72705723 0.38967364 0.03826155 0.39386005\n 0.0438693  0.72142769]"
+  },
+  {
+    "objectID": "notebooks/example.html#linear-regression",
+    "href": "notebooks/example.html#linear-regression",
+    "title": "Regression via ERM in pyensmallen",
+    "section": "Linear Regression",
+    "text": "Linear Regression\n\npyensmallen\n\n%%time\nlinear_start = np.random.rand(k)\n\noptimizer = pe.L_BFGS()\nresult_linear_ens = optimizer.optimize(\n    lambda params, gradient: pe.losses.linear_obj(params, gradient, X_linear, y_linear),\n    linear_start,\n)\nresult_linear_ens\n\nCPU times: user 5.83 s, sys: 168 ms, total: 6 s\nWall time: 401 ms\n\n\narray([0.51639859, 0.94598022, 0.23380001, 0.55162275, 0.97811966,\n       0.24254699, 0.64702478, 0.70271041, 0.26476461, 0.77362184,\n       0.7817448 , 0.36874977, 0.72697004, 0.06518613, 0.72705723,\n       0.38967364, 0.03826155, 0.39386005, 0.0438693 , 0.72142769])"
+  },
+  {
+    "objectID": "notebooks/example.html#logistic-regression",
+    "href": "notebooks/example.html#logistic-regression",
+    "title": "Regression via ERM in pyensmallen",
+    "section": "Logistic Regression",
+    "text": "Logistic Regression\n\nfrom scipy.special import expit\n\n\n# Logistic Regression Data\nn, k = 10_000, 20\nX_logistic = np.random.randn(n, k)\nprint(true_params_logistic := np.random.rand(k))\np = expit(X_logistic @ true_params_logistic)\ny_logistic = np.random.binomial(1, p)\n\n[0.89732722 0.75831337 0.56717163 0.34694649 0.80717784 0.58244036\n 0.87299492 0.41850594 0.1207063  0.98533514 0.94064507 0.7165698\n 0.34148517 0.21317874 0.24622957 0.77088703 0.99525454 0.92697675\n 0.85896413 0.96032642]\n\n\n\npyensmallen\n\n%%time\nlogistic_start = np.random.rand(k)\nX_logistic2 = np.ascontiguousarray(\n    X_logistic\n)  # Ensure C-contiguous array for better performance\ny_logistic2 = y_logistic.ravel()\n\noptimizer = pe.L_BFGS()\nresult_logistic_ens = optimizer.optimize(\n    lambda params, gradient: pe.losses.logistic_obj(\n        params, gradient, X_logistic2, y_logistic2\n    ),\n    logistic_start,\n)\nresult_logistic_ens\n\nCPU times: user 143 ms, sys: 0 ns, total: 143 ms\nWall time: 9.02 ms\n\n\narray([0.91787916, 0.78073762, 0.60735961, 0.36399418, 0.72193698,\n       0.59354801, 0.85939579, 0.36224349, 0.13497476, 0.9933936 ,\n       0.94503475, 0.6627938 , 0.35080571, 0.24550555, 0.23167949,\n       0.781631  , 0.95323063, 0.92981989, 0.91296721, 0.99777022])"
+  },
+  {
+    "objectID": "notebooks/example.html#poisson-regression",
+    "href": "notebooks/example.html#poisson-regression",
+    "title": "Regression via ERM in pyensmallen",
+    "section": "Poisson Regression",
+    "text": "Poisson Regression\n\nn, k = 100_000, 10\n# Poisson Regression Data\nX_poisson = np.random.randn(n, k)\nprint(true_params_poisson := np.random.rand(k))\nlambda_ = np.exp(X_poisson @ true_params_poisson)\ny_poisson = np.random.poisson(lambda_)\n\n[0.46622737 0.27893256 0.1526658  0.04174791 0.46506248 0.03016092\n 0.94782085 0.33601329 0.11498335 0.72554644]\n\n\n\n%%time\npoisson_start = np.random.rand(k)\noptimizer = pe.L_BFGS()\nresult_poisson_ens = optimizer.optimize(\n    lambda params, gradient: pe.poisson_obj(params, gradient, X_poisson, y_poisson),\n    poisson_start,\n)\nresult_poisson_ens\n\nCPU times: user 491 ms, sys: 1.01 ms, total: 492 ms\nWall time: 30.3 ms\n\n\narray([0.46785229, 0.27548319, 0.15101541, 0.03977385, 0.46631077,\n       0.03272198, 0.94846943, 0.33680279, 0.1201882 , 0.72804329])"
+  },
+  {
+    "objectID": "notebooks/gmm.html",
+    "href": "notebooks/gmm.html",
+    "title": "GMM in pyensmallen+jax",
+    "section": "",
+    "text": "import numpy as np\nimport jax\nimport pyensmallen as pe\njax.config.update(\"jax_enable_x64\", True)"
+  },
+  {
+    "objectID": "notebooks/gmm.html#linear-iv",
+    "href": "notebooks/gmm.html#linear-iv",
+    "title": "GMM in pyensmallen+jax",
+    "section": "Linear IV",
+    "text": "Linear IV\nThe linear moment condition \\(z (y - x\\beta)\\) is attached as a static-method (iv_moment) to the class for convenience. This covers OLS and 2SLS.\n\n# Generate synthetic data for IV estimation\ndef generate_test_data(n=5000, seed=42):\n    np.random.seed(seed)\n\n    # Generate instruments\n    z1 = np.random.normal(0, 1, n)\n    z2 = np.random.normal(0, 1, n)\n    Z = np.column_stack([np.ones(n), z1, z2])\n\n    # Generate error terms with correlation\n    error = np.random.normal(0, 1, n)\n    v = 0.7 * error + np.random.normal(0, 0.5, n)\n\n    # Generate endogenous variable\n    x = 0.5 * z1 - 0.2 * z2 + v\n    X = np.column_stack([np.ones(n), x])\n\n    # Generate outcome\n    true_beta = np.array([-0.5, 1.2])\n    y = X @ true_beta + error\n\n    return y, X, Z, true_beta\n\n\n# Generate test data\ny, X, Z, true_beta = generate_test_data()\n\n# Create and fit GMM estimator\ngmm = pe.EnsmallenEstimator(pe.EnsmallenEstimator.iv_moment, \"optimal\")\ngmm.fit(Z, y, X, verbose=True)\n\n# Display results\nprint(\"\\nGMM Results:\")\nprint(f\"True parameters: {true_beta}\")\nprint(f\"Estimated parameters: {gmm.theta_}\")\nprint(f\"Standard errors: {gmm.std_errors_}\")\n\n\nGMM Results:\nTrue parameters: [-0.5  1.2]\nEstimated parameters: [-0.48933885  1.19956026]\nStandard errors: [0.01412415 0.02603365]\n\n\n\nThe Fast Score Bootstrap\nThe “slow” or “full” non-parametric bootstrap is conceptually simple: 1. Pretend the sample is the true population. 2. Draw a new sample (with replacement) from this “population”. 3. Re-calculate your estimator \\(\\hat{\\theta}\\) from scratch on this new sample. 4. Repeat 1000s of times to build a distribution of \\(\\hat{\\theta}^*\\). The standard deviation of this distribution is your standard error.\nThis is robust but computationally expensive because of Step 3. The “fast” score bootstrap is a clever shortcut that avoids re-running the full optimization. It’s based on a first-order Taylor approximation.\nThe Logic:\n\nThe Starting Point: The M-estimator \\(\\hat{\\theta}\\) is defined by the first-order condition (FOC) that the sample average of the moment conditions is (approximately) zero:\n\n\\[\n(1/n) \\sum g(z_i, \\hat{\\theta}) \\approx 0\n\\]\n\nThe Bootstrap Sample: Now, imagine we have a bootstrap sample. The bootstrap estimate \\(\\hat{\\theta}^*\\) would be the one that solves the FOC for that sample:\n\n\\[\n(1/n) \\sum g(z_i^*, \\hat{\\theta}^*) \\approx 0\n\\]\nwhere \\(z_i^*\\) are draws from the original sample.\n\nThe Taylor Expansion Trick: We don’t want to actually solve for \\(\\hat{\\theta}^*\\). Instead, we can approximate it. Let’s do a first-order Taylor expansion of the bootstrap FOC around the original estimate \\(\\hat{\\theta}\\):\n\n\\[\n(1/n) \\sum g(z_i^*, \\hat{\\theta}^*) \\approx (1/n) \\sum g(z_i^*, \\hat{\\theta}) + [ (1/n) \\sum (\\partial g(z_i^*, \\theta)/\\partial \\theta) \\mid_{\\hat{\\theta}} ]  (\\hat{\\theta}^* - \\hat{\\theta})\n\\]\nSince the left side is zero, we can rearrange to solve for the difference \\((\\hat{\\theta}^* - \\hat{\\theta})\\)\n\\[\n(\\hat{\\theta}^* - \\hat{\\theta}) \\approx\n- [ (1/n) \\sum (\\partial g(z_i^*, \\theta)/\\partial \\theta) \\mid_{\\hat{\\theta}} ]^{-1}\n\\; \\;  [ (1/n) \\sum g(z_i^*, \\hat{\\theta}) ]\n\\]\n\nSimplifying the Approximation:\n\n\nThe first term \\([ (1/n) \\sum (\\partial g(z_i^*, \\theta)/\\partial \\theta) \\mid_{\\hat{\\theta}}]\\) is the average Jacobian of the moments, evaluated on the bootstrap sample. By the Law of Large Numbers, this is approximately the same as the Jacobian on the original sample, which we call $.\nThe second term \\((1/n) \\sum g(z_i^*, \\hat{\\theta})\\) is simply the average of the original moment residuals \\(g_i(\\hat{\\theta})\\) over the bootstrap sample. Let’s call this \\(\\bar{g}^*\\).\n\nThis simplifies our approximation to:\n\\[\n(\\hat{\\theta}^* - \\hat{\\theta}) \\approx - G^{-1} \\cdot \\bar{g}^*\n\\]\n(This is for the just-identified case. For GMM, the full term is \\(-(G'WG)^{-1} G'W \\; \\cdot \\; \\bar{g}^*\\)\nThe Fast Bootstrap Algorithm:\nThis approximation is the heart of the fast bootstrap:\n\nCalculate the original estimate \\(\\hat{\\theta}\\) once.\nCalculate the \\(n\\) individual moment residuals \\(g_i(\\hat{\\theta})\\) once.\nCalculate the matrix \\(M = -(G'WG)^{-1}G'W\\) once.\nLoop \\(B\\) times: (a) Create a bootstrap sample of the residuals \\(g_i\\) (not the data). (b) Calculate their mean, \\(\\bar{g}^*\\). (c) Calculate the bootstrap estimate directly: \\(\\hat{\\theta}^* = \\hat{\\theta} + M * \\bar{g}^*\\).\nCompute the standard deviation of the \\(B\\) values of \\(\\hat{\\theta}^*\\).\n\nThis is orders of magnitude faster because the loop only involves simple matrix-vector products, not a full re-optimization.\n\n\nConnection to Newey (1994) Efficiency Framework\nThe connection is the influence function, and is central to Newey (1994).\n\nWhat is the Influence Function? The influence function \\(\\varphi(z_i)\\) for an estimator \\(\\hat{\\theta}\\) tells you how much the estimate changes when you add a single observation \\(z_i\\) to your sample. It’s the building block of the estimator’s asymptotic distribution:\n\n\\[\n\\sqrt{n} (\\hat{\\theta} - \\theta_0) = \\frac{1}{\\sqrt{n}} \\sum \\varphi(z_i) + o_p(1)\n\\]\n\nThe Influence Function for GMM: the influence function for a GMM estimator is:\n\n\\[\n\\varphi(z_i) = - (G'WG)^{-1} G'W \\cdot g(z_i, \\theta_0)\n\\]\nThe core of the fast bootstrap approximation is a sample-based version of the influence function. The matrix \\(M = -(G'WG)^{-1}G'W\\) is the key component that transforms the moment conditions \\(g\\) into their effect on the parameter estimate \\(\\theta\\).\nHow it relates to Newey’s Efficiency Analysis :\nNewey’s framework is all about comparing the influence functions of different estimators.\n\nA Common Structure: Newey classifies estimators by writing their influence functions in a general form:\n\n\\[\n\\varphi(z, \\tau) = D(\\tau)^{-1} m(z, \\tau)\n\\]\nwhere \\(\\tau\\) is some parameter indexing the class of estimators (e.g., for GMM, \\(\\tau\\) could be the weighting matrix \\(W\\)). \\(D\\) is a non-stochastic matrix (like \\(G'WG\\)) and \\(m\\) is a zero-mean function (like \\(G'Wg\\)).\n\nThe Efficiency Condition: An estimator indexed by \\(\\bar{\\tau}\\) is efficient within its class if its influence function \\(\\varphi(z, \\bar{\\tau})\\) is “as small as possible”. The key condition is that for an efficient estimator, its \\(D\\) matrix must equal the variance of its \\(m\\) function:\n\n\\[\nD(\\bar{\\tau}) = E[m(z, \\bar{\\tau})  m(z, \\bar{\\tau})']\n\\]\n\nOptimal GMM: For GMM, \\(D(W) = G'WG\\) and \\(m(z, W) = G'Wg(z)\\). The variance of \\(m\\) is \\(E[(G'Wg)(G'Wg)'] = G'W \\Omega WG\\). The efficiency condition becomes:\n\n\\[\nG'WG = G'W \\Omega WG\n\\]\nThis holds if \\(W = \\Omega^{-1}\\). This proves that the GMM estimator using the inverse variance of the moments as the weighting matrix is efficient within the class of GMM estimators defined by those moments.\n\n%%time\n# Get fast bootstrap standard errors\nfast_bootstrap_se = gmm.bootstrap_scores(n_bootstrap=1000)\n\nCPU times: user 177 ms, sys: 959 μs, total: 178 ms\nWall time: 178 ms\n\n\n\n%%time\nslow_bootstrap_se = gmm.bootstrap_full(n_bootstrap=100)\n\nCPU times: user 1min 2s, sys: 1.6 s, total: 1min 3s\nWall time: 29.3 s\n\n\n\nimport pandas as pd\npd.DataFrame(\n    np.c_[true_beta, gmm.theta_, gmm.std_errors_, fast_bootstrap_se, slow_bootstrap_se],\n    columns=[\"True\", \"GMM\", \"Analytic\", \"Fast Bootstrap\", \"Full Bootstrap\"],\n)\n\n\n\n\n\n\n\n\nTrue\nGMM\nAnalytic\nFast Bootstrap\nFull Bootstrap\n\n\n\n\n0\n-0.5\n-0.489339\n0.014124\n0.014096\n0.013001\n\n\n1\n1.2\n1.199560\n0.026034\n0.025503\n0.024544"
+  },
+  {
+    "objectID": "notebooks/gmm.html#nonlinear-gmm-logit",
+    "href": "notebooks/gmm.html#nonlinear-gmm-logit",
+    "title": "GMM in pyensmallen+jax",
+    "section": "Nonlinear GMM: Logit",
+    "text": "Nonlinear GMM: Logit\n\n# logit DGP\nn = 1000\np = 2\nX = np.random.normal(size=(n, p))\nX = np.c_[np.ones(n), X]\nbeta = np.array([0.5, -0.5, 0.5])\ny = np.random.binomial(1, 1 / (1 + np.exp(-X @ beta)))\nZ = X.copy()\n\nIWLS solution\n\nimport statsmodels.api as sm\nlogit_mod = sm.Logit(y, X)\nlogit_res = logit_mod.fit(disp=0)\nprint(\"Parameters: \", logit_res.params)\n\nParameters:  [ 0.45130964 -0.44964216  0.53112315]\n\n\n\nnonlinear GMM with ensmallen\ndefine moment condition (in jax-compatible terms)\n\nimport jax.numpy as jnp\nimport jax.scipy.special as jsp\n\ndef ψ_logit(z, y, x, beta):\n    # Use jax.scipy.special.expit instead of scipy.special.expit\n    resid = y - jsp.expit(x @ beta)\n    return z * resid[:, jnp.newaxis]\n\n\n# Create and fit GMM estimator\ngmm = pe.EnsmallenEstimator(ψ_logit, \"optimal\")\ngmm.fit(Z, y, X, verbose=True)\n\n# Display results\nprint(f\"True parameters: {beta}\")\nprint(f\"Estimated parameters: {gmm.theta_}\")\nprint(f\"Standard errors: {gmm.std_errors_}\")\n\nTrue parameters: [ 0.5 -0.5  0.5]\nEstimated parameters: [ 0.45130965 -0.44964226  0.53112299]\nStandard errors: [0.06921393 0.07012597 0.06711118]\n\n\n\n%%time\n\n# Get fast bootstrap standard errors\nbootstrap_se = gmm.bootstrap_scores(n_bootstrap=1000)\n\nCPU times: user 687 ms, sys: 18.3 ms, total: 705 ms\nWall time: 610 ms\n\n\n\nnp.c_[gmm.theta_, gmm.std_errors_, bootstrap_se]\n\narray([[ 0.45130965,  0.06921393,  0.07022184],\n       [-0.44964226,  0.07012597,  0.07125831],\n       [ 0.53112299,  0.06711118,  0.06535547]])"
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "pyensmallen",
+    "section": "",
+    "text": "pyensmallen provides Python bindings for the ensmallen optimization library, with a focus on econometrics and supervised learning workflows.\n\n\nBase install:\nuv pip install pyensmallen\nDevelopment install with all test and notebook dependencies:\nuv pip install --python .venv/bin/python \".[full]\"\nEditable install in this repository:\nuv pip install --python .venv/bin/python meson meson-python ninja pybind11\nuv pip install --python .venv/bin/python --no-build-isolation -e \".[full]\"\n\n\n\n\nOptimizers: L_BFGS, FrankWolfe, SimplexFrankWolfe, and Adam variants\nObjective helpers: linear, logistic, and Poisson losses\nEstimator classes: LinearRegression, LogisticRegression, PoissonRegression\nInference: classical and robust sandwich standard errors for unregularized OLS and QMLE-style logit and Poisson\nGMM support with JAX autodiff\n\n\n\n\n\nOptimizers: low-level optimizer classes and when to use them\nEstimators: supervised estimators, fitted attributes, and inference\nNotebooks: examples and benchmark notebooks in this repository\n\n\n\n\n\nThe full extra installs Python packages required to run tests and notebooks.\nQuarto itself is an external CLI. Render this site with quarto render docs."
+  },
+  {
+    "objectID": "index.html#install",
+    "href": "index.html#install",
+    "title": "pyensmallen",
+    "section": "",
+    "text": "Base install:\nuv pip install pyensmallen\nDevelopment install with all test and notebook dependencies:\nuv pip install --python .venv/bin/python \".[full]\"\nEditable install in this repository:\nuv pip install --python .venv/bin/python meson meson-python ninja pybind11\nuv pip install --python .venv/bin/python --no-build-isolation -e \".[full]\""
+  },
+  {
+    "objectID": "index.html#what-is-included",
+    "href": "index.html#what-is-included",
+    "title": "pyensmallen",
+    "section": "",
+    "text": "Optimizers: L_BFGS, FrankWolfe, SimplexFrankWolfe, and Adam variants\nObjective helpers: linear, logistic, and Poisson losses\nEstimator classes: LinearRegression, LogisticRegression, PoissonRegression\nInference: classical and robust sandwich standard errors for unregularized OLS and QMLE-style logit and Poisson\nGMM support with JAX autodiff"
+  },
+  {
+    "objectID": "index.html#documentation-map",
+    "href": "index.html#documentation-map",
+    "title": "pyensmallen",
+    "section": "",
+    "text": "Optimizers: low-level optimizer classes and when to use them\nEstimators: supervised estimators, fitted attributes, and inference\nNotebooks: examples and benchmark notebooks in this repository"
+  },
+  {
+    "objectID": "index.html#notes",
+    "href": "index.html#notes",
+    "title": "pyensmallen",
+    "section": "",
+    "text": "The full extra installs Python packages required to run tests and notebooks.\nQuarto itself is an external CLI. Render this site with quarto render docs."
+  },
+  {
+    "objectID": "estimators.html",
+    "href": "estimators.html",
+    "title": "Estimators",
+    "section": "",
+    "text": "pyensmallen now exposes estimator classes for common supervised learning and econometrics workflows:\n\nLinearRegression\nLogisticRegression\nPoissonRegression\n\n\n\nimport pyensmallen as pye\n\nmodel = pye.LogisticRegression(fit_intercept=True)\nmodel.fit(X, y)\n\ncoef = model.coef_\nintercept = model.intercept_\nprobs = model.predict_proba(X)\n\n\n\nAfter calling fit, each estimator exposes:\n\nparams_\ncoef_\nintercept_\nobjective_value_\n\nFor unregularized fits, the inference layer also exposes:\n\ncovariance_\nstd_errors_\ncoef_std_errors_\nintercept_std_error_\nrobust_covariance_\nrobust_std_errors_\nrobust_coef_std_errors_\nrobust_intercept_std_error_\n\n\n\n\nConfidence intervals:\nmodel.confidence_intervals()\nmodel.confidence_intervals(covariance_type=\"robust\")\nCompact summary output:\nsummary = model.summary()\nrobust_summary = model.summary(covariance_type=\"robust\")\nsummary() returns a numeric array with columns:\n[coef, se, ci_lb, ci_ub]\n\n\n\nAll three estimators currently accept:\n\nalpha\nl1_ratio\n\nThe intended use right now is ridge-like penalization. The L1 path is implemented with a smooth approximation to stay compatible with the current L-BFGS backend.\nInference is only exposed for unregularized fits (alpha == 0).\n\n\n\nSupported inference modes:\n\ncovariance_type=\"nonrobust\": model-based covariance\ncovariance_type=\"robust\": sandwich covariance\n\nFor OLS, the robust path uses the score-based sandwich form. For logit and Poisson, the robust path uses QMLE-style sandwich inference."
+  },
+  {
+    "objectID": "estimators.html#basic-usage",
+    "href": "estimators.html#basic-usage",
+    "title": "Estimators",
+    "section": "",
+    "text": "import pyensmallen as pye\n\nmodel = pye.LogisticRegression(fit_intercept=True)\nmodel.fit(X, y)\n\ncoef = model.coef_\nintercept = model.intercept_\nprobs = model.predict_proba(X)"
+  },
+  {
+    "objectID": "estimators.html#fitted-attributes",
+    "href": "estimators.html#fitted-attributes",
+    "title": "Estimators",
+    "section": "",
+    "text": "After calling fit, each estimator exposes:\n\nparams_\ncoef_\nintercept_\nobjective_value_\n\nFor unregularized fits, the inference layer also exposes:\n\ncovariance_\nstd_errors_\ncoef_std_errors_\nintercept_std_error_\nrobust_covariance_\nrobust_std_errors_\nrobust_coef_std_errors_\nrobust_intercept_std_error_"
+  },
+  {
+    "objectID": "estimators.html#inference-helpers",
+    "href": "estimators.html#inference-helpers",
+    "title": "Estimators",
+    "section": "",
+    "text": "Confidence intervals:\nmodel.confidence_intervals()\nmodel.confidence_intervals(covariance_type=\"robust\")\nCompact summary output:\nsummary = model.summary()\nrobust_summary = model.summary(covariance_type=\"robust\")\nsummary() returns a numeric array with columns:\n[coef, se, ci_lb, ci_ub]"
+  },
+  {
+    "objectID": "estimators.html#regularization",
+    "href": "estimators.html#regularization",
+    "title": "Estimators",
+    "section": "",
+    "text": "All three estimators currently accept:\n\nalpha\nl1_ratio\n\nThe intended use right now is ridge-like penalization. The L1 path is implemented with a smooth approximation to stay compatible with the current L-BFGS backend.\nInference is only exposed for unregularized fits (alpha == 0)."
+  },
+  {
+    "objectID": "estimators.html#covariance-types",
+    "href": "estimators.html#covariance-types",
+    "title": "Estimators",
+    "section": "",
+    "text": "Supported inference modes:\n\ncovariance_type=\"nonrobust\": model-based covariance\ncovariance_type=\"robust\": sandwich covariance\n\nFor OLS, the robust path uses the score-based sandwich form. For logit and Poisson, the robust path uses QMLE-style sandwich inference."
+  }
+]

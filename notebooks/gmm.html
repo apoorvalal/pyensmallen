@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.5.57">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>GMM in pyensmallen+jax – pyensmallen</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script><script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<script src="../site_libs/quarto-html/quarto.js"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../styles.css">
+</head>
+
+<body class="nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">pyensmallen</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../optimizers.html"> 
+<span class="menu-text">Optimizers</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../estimators.html"> 
+<span class="menu-text">Estimators</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../notebooks.html"> 
+<span class="menu-text">Notebooks</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#linear-iv" id="toc-linear-iv" class="nav-link active" data-scroll-target="#linear-iv">Linear IV</a>
+  <ul class="collapse">
+  <li><a href="#the-fast-score-bootstrap" id="toc-the-fast-score-bootstrap" class="nav-link" data-scroll-target="#the-fast-score-bootstrap">The Fast Score Bootstrap</a></li>
+  <li><a href="#connection-to-newey-1994-efficiency-framework" id="toc-connection-to-newey-1994-efficiency-framework" class="nav-link" data-scroll-target="#connection-to-newey-1994-efficiency-framework">Connection to Newey (1994) Efficiency Framework</a></li>
+  </ul></li>
+  <li><a href="#nonlinear-gmm-logit" id="toc-nonlinear-gmm-logit" class="nav-link" data-scroll-target="#nonlinear-gmm-logit">Nonlinear GMM: Logit</a>
+  <ul class="collapse">
+  <li><a href="#nonlinear-gmm-with-ensmallen" id="toc-nonlinear-gmm-with-ensmallen" class="nav-link" data-scroll-target="#nonlinear-gmm-with-ensmallen">nonlinear GMM with ensmallen</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">GMM in <code>pyensmallen+jax</code></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<div id="cell-2" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> jax</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pyensmallen <span class="im">as</span> pe</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>jax.config.update(<span class="st">"jax_enable_x64"</span>, <span class="va">True</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="linear-iv" class="level2">
+<h2 class="anchored" data-anchor-id="linear-iv">Linear IV</h2>
+<p>The linear moment condition <span class="math inline">\(z (y - x\beta)\)</span> is attached as a static-method (<code>iv_moment</code>) to the class for convenience. This covers OLS and 2SLS.</p>
+<div id="cell-4" class="cell" data-execution_count="2">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Generate synthetic data for IV estimation</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> generate_test_data(n<span class="op">=</span><span class="dv">5000</span>, seed<span class="op">=</span><span class="dv">42</span>):</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    np.random.seed(seed)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Generate instruments</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    z1 <span class="op">=</span> np.random.normal(<span class="dv">0</span>, <span class="dv">1</span>, n)</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    z2 <span class="op">=</span> np.random.normal(<span class="dv">0</span>, <span class="dv">1</span>, n)</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    Z <span class="op">=</span> np.column_stack([np.ones(n), z1, z2])</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Generate error terms with correlation</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    error <span class="op">=</span> np.random.normal(<span class="dv">0</span>, <span class="dv">1</span>, n)</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    v <span class="op">=</span> <span class="fl">0.7</span> <span class="op">*</span> error <span class="op">+</span> np.random.normal(<span class="dv">0</span>, <span class="fl">0.5</span>, n)</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Generate endogenous variable</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>    x <span class="op">=</span> <span class="fl">0.5</span> <span class="op">*</span> z1 <span class="op">-</span> <span class="fl">0.2</span> <span class="op">*</span> z2 <span class="op">+</span> v</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>    X <span class="op">=</span> np.column_stack([np.ones(n), x])</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Generate outcome</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>    true_beta <span class="op">=</span> np.array([<span class="op">-</span><span class="fl">0.5</span>, <span class="fl">1.2</span>])</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>    y <span class="op">=</span> X <span class="op">@</span> true_beta <span class="op">+</span> error</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> y, X, Z, true_beta</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="cell-5" class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Generate test data</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>y, X, Z, true_beta <span class="op">=</span> generate_test_data()</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Create and fit GMM estimator</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>gmm <span class="op">=</span> pe.EnsmallenEstimator(pe.EnsmallenEstimator.iv_moment, <span class="st">"optimal"</span>)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>gmm.fit(Z, y, X, verbose<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Display results</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">GMM Results:"</span>)</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"True parameters: </span><span class="sc">{</span>true_beta<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Estimated parameters: </span><span class="sc">{</span>gmm<span class="sc">.</span>theta_<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Standard errors: </span><span class="sc">{</span>gmm<span class="sc">.</span>std_errors_<span class="sc">}</span><span class="ss">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+GMM Results:
+True parameters: [-0.5  1.2]
+Estimated parameters: [-0.48933885  1.19956026]
+Standard errors: [0.01412415 0.02603365]</code></pre>
+</div>
+</div>
+<section id="the-fast-score-bootstrap" class="level3">
+<h3 class="anchored" data-anchor-id="the-fast-score-bootstrap">The Fast Score Bootstrap</h3>
+<p>The “slow” or “full” non-parametric bootstrap is conceptually simple: 1. Pretend the sample is the true population. 2. Draw a new sample (with replacement) from this “population”. 3. Re-calculate your estimator <span class="math inline">\(\hat{\theta}\)</span> from scratch on this new sample. 4. Repeat 1000s of times to build a distribution of <span class="math inline">\(\hat{\theta}^*\)</span>. The standard deviation of this distribution is your standard error.</p>
+<p>This is robust but computationally expensive because of Step 3. The “fast” score bootstrap is a clever shortcut that avoids re-running the full optimization. It’s based on a first-order Taylor approximation.</p>
+<p><strong>The Logic:</strong></p>
+<ol type="1">
+<li><strong>The Starting Point:</strong> The M-estimator <span class="math inline">\(\hat{\theta}\)</span> is defined by the first-order condition (FOC) that the sample average of the moment conditions is (approximately) zero:</li>
+</ol>
+<p><span class="math display">\[
+(1/n) \sum g(z_i, \hat{\theta}) \approx 0
+\]</span></p>
+<ol start="2" type="1">
+<li><strong>The Bootstrap Sample:</strong> Now, imagine we have a bootstrap sample. The bootstrap estimate <span class="math inline">\(\hat{\theta}^*\)</span> would be the one that solves the FOC for <em>that</em> sample:</li>
+</ol>
+<p><span class="math display">\[
+(1/n) \sum g(z_i^*, \hat{\theta}^*) \approx 0
+\]</span></p>
+<p>where <span class="math inline">\(z_i^*\)</span> are draws from the original sample.</p>
+<ol start="3" type="1">
+<li><strong>The Taylor Expansion Trick:</strong> We don’t want to actually <em>solve</em> for <span class="math inline">\(\hat{\theta}^*\)</span>. Instead, we can approximate it. Let’s do a first-order Taylor expansion of the bootstrap FOC around the <em>original</em> estimate <span class="math inline">\(\hat{\theta}\)</span>:</li>
+</ol>
+<p><span class="math display">\[
+(1/n) \sum g(z_i^*, \hat{\theta}^*) \approx (1/n) \sum g(z_i^*, \hat{\theta}) + [ (1/n) \sum (\partial g(z_i^*, \theta)/\partial \theta) \mid_{\hat{\theta}} ]  (\hat{\theta}^* - \hat{\theta})
+\]</span></p>
+<p>Since the left side is zero, we can rearrange to solve for the difference <span class="math inline">\((\hat{\theta}^* - \hat{\theta})\)</span></p>
+<p><span class="math display">\[
+(\hat{\theta}^* - \hat{\theta}) \approx
+- [ (1/n) \sum (\partial g(z_i^*, \theta)/\partial \theta) \mid_{\hat{\theta}} ]^{-1}
+\; \;  [ (1/n) \sum g(z_i^*, \hat{\theta}) ]
+\]</span></p>
+<ol start="4" type="1">
+<li><strong>Simplifying the Approximation:</strong></li>
+</ol>
+<ul>
+<li>The first term <span class="math inline">\([ (1/n) \sum (\partial g(z_i^*, \theta)/\partial \theta) \mid_{\hat{\theta}}]\)</span> is the average Jacobian of the moments, evaluated on the bootstrap sample. By the Law of Large Numbers, this is approximately the same as the Jacobian on the original sample, which we call $.</li>
+<li>The second term <span class="math inline">\((1/n) \sum g(z_i^*, \hat{\theta})\)</span> is simply the average of the <em>original</em> moment residuals <span class="math inline">\(g_i(\hat{\theta})\)</span> over the bootstrap sample. Let’s call this <span class="math inline">\(\bar{g}^*\)</span>.</li>
+</ul>
+<p>This simplifies our approximation to:</p>
+<p><span class="math display">\[
+(\hat{\theta}^* - \hat{\theta}) \approx - G^{-1} \cdot \bar{g}^*
+\]</span></p>
+<p>(This is for the just-identified case. For GMM, the full term is <span class="math inline">\(-(G'WG)^{-1} G'W \; \cdot \; \bar{g}^*\)</span></p>
+<p><strong>The Fast Bootstrap Algorithm:</strong></p>
+<p>This approximation is the heart of the fast bootstrap:</p>
+<ol type="1">
+<li>Calculate the original estimate <span class="math inline">\(\hat{\theta}\)</span> once.</li>
+<li>Calculate the <span class="math inline">\(n\)</span> individual moment residuals <span class="math inline">\(g_i(\hat{\theta})\)</span> once.</li>
+<li>Calculate the matrix <span class="math inline">\(M = -(G'WG)^{-1}G'W\)</span> once.</li>
+<li>Loop <span class="math inline">\(B\)</span> times: (a) Create a bootstrap sample of the <em>residuals</em> <span class="math inline">\(g_i\)</span> (not the data). (b) Calculate their mean, <span class="math inline">\(\bar{g}^*\)</span>. (c) Calculate the bootstrap estimate directly: <span class="math inline">\(\hat{\theta}^* = \hat{\theta} + M * \bar{g}^*\)</span>.</li>
+<li>Compute the standard deviation of the <span class="math inline">\(B\)</span> values of <span class="math inline">\(\hat{\theta}^*\)</span>.</li>
+</ol>
+<p>This is orders of magnitude faster because the loop only involves simple matrix-vector products, not a full re-optimization.</p>
+</section>
+<section id="connection-to-newey-1994-efficiency-framework" class="level3">
+<h3 class="anchored" data-anchor-id="connection-to-newey-1994-efficiency-framework">Connection to Newey (1994) Efficiency Framework</h3>
+<p>The connection is the <strong>influence function</strong>, and is central to Newey (1994).</p>
+<ul>
+<li><strong>What is the Influence Function?</strong> The influence function <span class="math inline">\(\varphi(z_i)\)</span> for an estimator <span class="math inline">\(\hat{\theta}\)</span> tells you how much the estimate changes when you add a single observation <span class="math inline">\(z_i\)</span> to your sample. It’s the building block of the estimator’s asymptotic distribution:</li>
+</ul>
+<p><span class="math display">\[
+\sqrt{n} (\hat{\theta} - \theta_0) = \frac{1}{\sqrt{n}} \sum \varphi(z_i) + o_p(1)
+\]</span></p>
+<ul>
+<li><strong>The Influence Function for GMM:</strong> the influence function for a GMM estimator is:</li>
+</ul>
+<p><span class="math display">\[
+\varphi(z_i) = - (G'WG)^{-1} G'W \cdot g(z_i, \theta_0)
+\]</span></p>
+<p>The core of the fast bootstrap approximation is a sample-based version of the influence function. The matrix <span class="math inline">\(M = -(G'WG)^{-1}G'W\)</span> is the key component that transforms the moment conditions <span class="math inline">\(g\)</span> into their effect on the parameter estimate <span class="math inline">\(\theta\)</span>.</p>
+<p><strong>How it relates to Newey’s Efficiency Analysis :</strong></p>
+<p>Newey’s framework is all about comparing the influence functions of different estimators.</p>
+<ol type="1">
+<li><strong>A Common Structure:</strong> Newey classifies estimators by writing their influence functions in a general form:</li>
+</ol>
+<p><span class="math display">\[
+\varphi(z, \tau) = D(\tau)^{-1} m(z, \tau)
+\]</span></p>
+<p>where <span class="math inline">\(\tau\)</span> is some parameter indexing the class of estimators (e.g., for GMM, <span class="math inline">\(\tau\)</span> could be the weighting matrix <span class="math inline">\(W\)</span>). <span class="math inline">\(D\)</span> is a non-stochastic matrix (like <span class="math inline">\(G'WG\)</span>) and <span class="math inline">\(m\)</span> is a zero-mean function (like <span class="math inline">\(G'Wg\)</span>).</p>
+<ol start="2" type="1">
+<li><strong>The Efficiency Condition:</strong> An estimator indexed by <span class="math inline">\(\bar{\tau}\)</span> is efficient within its class if its influence function <span class="math inline">\(\varphi(z, \bar{\tau})\)</span> is “as small as possible”. The key condition is that for an efficient estimator, its <span class="math inline">\(D\)</span> matrix must equal the variance of its <span class="math inline">\(m\)</span> function:</li>
+</ol>
+<p><span class="math display">\[
+D(\bar{\tau}) = E[m(z, \bar{\tau})  m(z, \bar{\tau})']
+\]</span></p>
+<ol start="3" type="1">
+<li><strong>Optimal GMM:</strong> For GMM, <span class="math inline">\(D(W) = G'WG\)</span> and <span class="math inline">\(m(z, W) = G'Wg(z)\)</span>. The variance of <span class="math inline">\(m\)</span> is <span class="math inline">\(E[(G'Wg)(G'Wg)'] = G'W \Omega WG\)</span>. The efficiency condition becomes:</li>
+</ol>
+<p><span class="math display">\[
+G'WG = G'W \Omega WG
+\]</span></p>
+<p>This holds if <span class="math inline">\(W = \Omega^{-1}\)</span>. This proves that the GMM estimator using the inverse variance of the moments as the weighting matrix is efficient <em>within the class of GMM estimators defined by those moments</em>.</p>
+<div id="cell-15" class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="op">%%</span>time</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Get fast bootstrap standard errors</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>fast_bootstrap_se <span class="op">=</span> gmm.bootstrap_scores(n_bootstrap<span class="op">=</span><span class="dv">1000</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>CPU times: user 177 ms, sys: 959 μs, total: 178 ms
+Wall time: 178 ms</code></pre>
+</div>
+</div>
+<div id="cell-16" class="cell" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="op">%%</span>time</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>slow_bootstrap_se <span class="op">=</span> gmm.bootstrap_full(n_bootstrap<span class="op">=</span><span class="dv">100</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>CPU times: user 1min 2s, sys: 1.6 s, total: 1min 3s
+Wall time: 29.3 s</code></pre>
+</div>
+</div>
+<div id="cell-17" class="cell" data-execution_count="6">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>pd.DataFrame(</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>    np.c_[true_beta, gmm.theta_, gmm.std_errors_, fast_bootstrap_se, slow_bootstrap_se],</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>    columns<span class="op">=</span>[<span class="st">"True"</span>, <span class="st">"GMM"</span>, <span class="st">"Analytic"</span>, <span class="st">"Fast Bootstrap"</span>, <span class="st">"Full Bootstrap"</span>],</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="6">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">True</th>
+<th data-quarto-table-cell-role="th">GMM</th>
+<th data-quarto-table-cell-role="th">Analytic</th>
+<th data-quarto-table-cell-role="th">Fast Bootstrap</th>
+<th data-quarto-table-cell-role="th">Full Bootstrap</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>-0.5</td>
+<td>-0.489339</td>
+<td>0.014124</td>
+<td>0.014096</td>
+<td>0.013001</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1</td>
+<td>1.2</td>
+<td>1.199560</td>
+<td>0.026034</td>
+<td>0.025503</td>
+<td>0.024544</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="nonlinear-gmm-logit" class="level2">
+<h2 class="anchored" data-anchor-id="nonlinear-gmm-logit">Nonlinear GMM: Logit</h2>
+<div id="cell-19" class="cell" data-execution_count="7">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># logit DGP</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>n <span class="op">=</span> <span class="dv">1000</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>p <span class="op">=</span> <span class="dv">2</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> np.random.normal(size<span class="op">=</span>(n, p))</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> np.c_[np.ones(n), X]</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>beta <span class="op">=</span> np.array([<span class="fl">0.5</span>, <span class="op">-</span><span class="fl">0.5</span>, <span class="fl">0.5</span>])</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> np.random.binomial(<span class="dv">1</span>, <span class="dv">1</span> <span class="op">/</span> (<span class="dv">1</span> <span class="op">+</span> np.exp(<span class="op">-</span>X <span class="op">@</span> beta)))</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>Z <span class="op">=</span> X.copy()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>IWLS solution</p>
+<div id="cell-21" class="cell" data-execution_count="8">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> statsmodels.api <span class="im">as</span> sm</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>logit_mod <span class="op">=</span> sm.Logit(y, X)</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>logit_res <span class="op">=</span> logit_mod.fit(disp<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Parameters: "</span>, logit_res.params)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Parameters:  [ 0.45130964 -0.44964216  0.53112315]</code></pre>
+</div>
+</div>
+<section id="nonlinear-gmm-with-ensmallen" class="level3">
+<h3 class="anchored" data-anchor-id="nonlinear-gmm-with-ensmallen">nonlinear GMM with ensmallen</h3>
+<p>define moment condition (in jax-compatible terms)</p>
+<div id="cell-23" class="cell" data-execution_count="9">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> jax.numpy <span class="im">as</span> jnp</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> jax.scipy.special <span class="im">as</span> jsp</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> ψ_logit(z, y, x, beta):</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Use jax.scipy.special.expit instead of scipy.special.expit</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    resid <span class="op">=</span> y <span class="op">-</span> jsp.expit(x <span class="op">@</span> beta)</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> z <span class="op">*</span> resid[:, jnp.newaxis]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="cell-24" class="cell" data-execution_count="10">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create and fit GMM estimator</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>gmm <span class="op">=</span> pe.EnsmallenEstimator(ψ_logit, <span class="st">"optimal"</span>)</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>gmm.fit(Z, y, X, verbose<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Display results</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"True parameters: </span><span class="sc">{</span>beta<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Estimated parameters: </span><span class="sc">{</span>gmm<span class="sc">.</span>theta_<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Standard errors: </span><span class="sc">{</span>gmm<span class="sc">.</span>std_errors_<span class="sc">}</span><span class="ss">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>True parameters: [ 0.5 -0.5  0.5]
+Estimated parameters: [ 0.45130965 -0.44964226  0.53112299]
+Standard errors: [0.06921393 0.07012597 0.06711118]</code></pre>
+</div>
+</div>
+<div id="cell-25" class="cell" data-execution_count="11">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="op">%%</span>time</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Get fast bootstrap standard errors</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>bootstrap_se <span class="op">=</span> gmm.bootstrap_scores(n_bootstrap<span class="op">=</span><span class="dv">1000</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>CPU times: user 687 ms, sys: 18.3 ms, total: 705 ms
+Wall time: 610 ms</code></pre>
+</div>
+</div>
+<div id="cell-26" class="cell" data-execution_count="12">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>np.c_[gmm.theta_, gmm.std_errors_, bootstrap_se]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="12">
+<pre><code>array([[ 0.45130965,  0.06921393,  0.07022184],
+       [-0.44964226,  0.07012597,  0.07125831],
+       [ 0.53112299,  0.06711118,  0.06535547]])</code></pre>
+</div>
+</div>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    // For code content inside modals, clipBoardJS needs to be initialized with a container option
+    // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>pyensmallen documentation</p>
+</div>   
+    <div class="nav-footer-center">
+      &nbsp;
+    </div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+
+
+
+
+</body></html>
