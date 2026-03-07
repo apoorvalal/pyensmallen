@@ -166,3 +166,7 @@ cython_debug/
 .DS_Store
 .claude/settings.local.json
 tmp.md
+ensmallen/
+docs/_site/
+.quarto/
+synthlearners_repo/

@@ -1,0 +1,8 @@
+body {
+  line-height: 1.6;
+}
+
+.navbar-brand {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}

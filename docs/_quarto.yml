@@ -1,0 +1,40 @@
+project:
+  type: website
+  output-dir: _site
+  render:
+    - index.qmd
+    - optimizers.qmd
+    - estimators.qmd
+    - notebooks.qmd
+    - notebooks/example.ipynb
+    - notebooks/banana.ipynb
+    - notebooks/gmm.ipynb
+    - notebooks/autodiff_mnl.ipynb
+
+website:
+  title: pyensmallen
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - href: optimizers.qmd
+        text: Optimizers
+      - href: estimators.qmd
+        text: Estimators
+      - href: notebooks.qmd
+        text: Notebooks
+  page-footer:
+    left: "pyensmallen documentation"
+
+jupyter: ../.venv/bin/python
+
+execute:
+  enabled: true
+  warning: false
+  error: false
+
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+    toc: true

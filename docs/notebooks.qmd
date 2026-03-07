@@ -1,0 +1,53 @@
+# Notebooks
+
+The Quarto site includes executed versions of the core Python notebooks and links to the heavier benchmark notebooks.
+
+## Rendered in the site
+
+These notebooks are part of the Quarto build and are rendered as documentation pages:
+
+- [example](notebooks/example.html)
+  ERM-style linear, logistic, and Poisson regression examples.
+
+- [banana](notebooks/banana.html)
+  Optimizer demonstration on Rosenbrock's banana function.
+
+- [gmm](notebooks/gmm.html)
+  Linear IV GMM, nonlinear logit-style GMM, and bootstrap-based inference.
+
+- [autodiff_mnl](notebooks/autodiff_mnl.html)
+  JAX autodiff for multinomial logit with `pyensmallen` as the optimizer backend.
+
+## Source-only notebooks
+
+These remain in the repository but are not part of the always-executed Quarto build:
+
+- [likelihood_comparison.ipynb](../notebooks/likelihood_comparison.ipynb)
+  Large benchmark notebook comparing `pyensmallen` against SciPy, statsmodels, CVXPY, and JAX.
+
+- [likelihood_comparison_estimators.ipynb](../notebooks/likelihood_comparison_estimators.ipynb)
+  Benchmark notebook using the estimator-class API.
+
+- [synth.ipynb](../notebooks/synth.ipynb)
+  Synthetic-control style balancing weights and simulation work.
+
+- [compare_r.ipynb](../notebooks/compare_r.ipynb)
+  R notebook, not part of the Python-backed docs build.
+
+## Build behavior
+
+The Quarto documentation build executes the rendered notebooks above. This keeps the core tutorial material live and testable without forcing every expensive benchmark notebook into the site build.
+
+## Running notebooks locally
+
+Install the full dependency set:
+
+```bash
+uv pip install --python .venv/bin/python --no-build-isolation -e ".[full]"
+```
+
+Then launch Jupyter:
+
+```bash
+.venv/bin/python -m jupyter lab
+```
