@@ -23,7 +23,23 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+
+      - name: Set release version
+        run: echo "SETUPTOOLS_SCM_PRETEND_VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
+
+      - name: Cache cibuildwheel downloads
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/cibuildwheel
+            ~/Library/Caches/cibuildwheel
+          key: cibuildwheel-${{ runner.os }}-${{ matrix.python[0] }}-${{ matrix.buildplat[1] }}
+          restore-keys: |
+            cibuildwheel-${{ runner.os }}-${{ matrix.python[0] }}-
+            cibuildwheel-${{ runner.os }}-
 
       - name: Setup micromamba
         uses: mamba-org/setup-micromamba@v2.0.1
@@ -32,6 +48,17 @@ jobs:
           create-args: armadillo ensmallen
           init-shell: bash
           generate-run-shell: true
+
+      - name: Prime cibuildwheel virtualenv cache
+        if: runner.os == 'macOS'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p ~/Library/Caches/cibuildwheel
+          curl -fL --retry 5 --retry-all-errors \
+            -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+            -o ~/Library/Caches/cibuildwheel/virtualenv-20.26.2.pyz \
+            https://github.com/pypa/get-virtualenv/raw/20.26.2/public/virtualenv.pyz
 
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.19.0
@@ -74,6 +101,9 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v')
     steps:
       - uses: actions/checkout@v4
+
+      - name: Set release version
+        run: echo "SETUPTOOLS_SCM_PRETEND_VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
 
       - name: Set up Python
         uses: actions/setup-python@v4
