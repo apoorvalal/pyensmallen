@@ -82,6 +82,7 @@ def relative_loader_reference(binary: Path, target: Path) -> str:
 
 
 def patch_binary(binary: Path, vendored_openblas: Path) -> None:
+    modified = False
     deps = mach_o_dependencies(binary)
     if OLD_BLAS_REFERENCE in deps:
         replacement = relative_loader_reference(binary, vendored_openblas)
@@ -94,10 +95,15 @@ def patch_binary(binary: Path, vendored_openblas: Path) -> None:
                 str(binary),
             ]
         )
+        modified = True
 
     for rpath in mach_o_rpaths(binary):
         if any(rpath.startswith(prefix) for prefix in STALE_RPATH_PREFIXES):
             run(["install_name_tool", "-delete_rpath", rpath, str(binary)])
+            modified = True
+
+    if modified:
+        run(["codesign", "--force", "--sign", "-", str(binary)])
 
 
 def ensure_blas_symlink(dylib_dir: Path, vendored_openblas: Path) -> None:
@@ -118,7 +124,9 @@ def find_single(pattern: str, root: Path) -> Path:
 def repair_wheel(input_wheel: Path, dest_dir: Path, delocate_archs: str) -> Path:
     run(
         [
-            "delocate-wheel",
+            sys.executable,
+            "-m",
+            "delocate.cmd.delocate_wheel",
             "--require-archs",
             delocate_archs,
             "-w",
