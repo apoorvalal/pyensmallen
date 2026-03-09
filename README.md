@@ -99,3 +99,22 @@ The rendered site lands in `docs/_site/`. The generated API source pages land in
 __from wheel__
 - download the appropriate `.whl` for your system from the more recent release listed in `Releases` and run `uv pip install ./pyensmallen...` OR
 - copy the download url and run `uv pip install https://github.com/apoorvalal/pyensmallen/releases/download/<version>/pyensmallen-<version>-<pyversion>-linux_x86_64.whl`
+
+## Documentation
+
+GitHub Pages is served from the `gh-pages` branch. This repository does not
+auto-publish the website when `master` changes, so updating the site is a
+separate step.
+
+After rendering the documentation site into `docs/_site/`, publish it with:
+
+```bash
+scripts/publish_docs.sh
+```
+
+The script:
+
+- creates a temporary worktree for `gh-pages`
+- syncs `docs/_site/` into that worktree
+- commits the site update if anything changed
+- pushes `gh-pages` to `origin`
