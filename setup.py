@@ -108,6 +108,7 @@ setup(
         "gmm": ["jax", "jaxlib"],
         "full": [
             "cvxpy",
+            "griffe<1",
             "ipywidgets",
             "jax",
             "jaxlib",
@@ -117,6 +118,7 @@ setup(
             "optax",
             "pandas",
             "pytest",
+            "quartodoc",
             "seaborn",
             "statsmodels",
             "toolz",

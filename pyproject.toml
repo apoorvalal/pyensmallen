@@ -33,6 +33,7 @@ dependencies = [
 gmm = ["jax", "jaxlib"]
 full = [
     "cvxpy",
+    "griffe<1",
     "ipywidgets",
     "jax",
     "jaxlib",
@@ -42,6 +43,7 @@ full = [
     "optax",
     "pandas",
     "pytest",
+    "quartodoc",
     "seaborn",
     "statsmodels",
     "toolz",

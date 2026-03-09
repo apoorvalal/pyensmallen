@@ -65,20 +65,36 @@ The `full` extra includes the Python dependencies used by:
 
 __documentation__
 
-The repository includes a Quarto documentation site in `docs/`.
+### doc-generation
 
-Render it with:
+The repository includes a Quarto documentation site in `docs/`. The docs are built from three sources:
+
+- hand-written Quarto pages in `docs/*.qmd`
+- generated API reference pages in `docs/reference/*.qmd`, built from Python and pybind11 docstrings with `quartodoc`
+- executed notebook pages in `docs/notebooks/*.ipynb`
+
+Use the render script instead of calling `quarto render` directly:
 
 ```bash
 scripts/render_docs.sh
 ```
 
-The rendered site lands in `docs/_site/`.
-The site includes:
+The script does the following:
 
-- optimizer documentation
-- estimator documentation
-- executed core notebooks rendered as site pages
+- uses the repository `.venv` as the Quarto Python runtime
+- forces JAX onto CPU so notebook execution is stable during docs builds
+- copies the tracked notebooks from `notebooks/` into `docs/notebooks/`
+- runs `quartodoc` to regenerate the API reference pages from docstrings
+- runs `quarto render docs` to execute the notebooks and build the site
+
+If you need the full docs toolchain first:
+
+```bash
+uv pip install --python .venv/bin/python meson meson-python ninja pybind11
+uv pip install --python .venv/bin/python --no-build-isolation -e ".[full]"
+```
+
+The rendered site lands in `docs/_site/`. The generated API source pages land in `docs/reference/`.
 
 __from wheel__
 - download the appropriate `.whl` for your system from the more recent release listed in `Releases` and run `uv pip install ./pyensmallen...` OR

@@ -3,13 +3,18 @@ project:
   output-dir: _site
   render:
     - index.qmd
+    - benchmarks.qmd
     - optimizers.qmd
     - estimators.qmd
     - notebooks.qmd
+    - reference/*.qmd
     - notebooks/example.ipynb
     - notebooks/banana.ipynb
     - notebooks/gmm.ipynb
     - notebooks/autodiff_mnl.ipynb
+
+metadata-files:
+  - reference/_sidebar.yml
 
 website:
   title: pyensmallen
@@ -19,14 +24,18 @@ website:
         text: Home
       - href: optimizers.qmd
         text: Optimizers
+      - href: benchmarks.qmd
+        text: Benchmarks
       - href: estimators.qmd
         text: Estimators
+      - href: reference/index.qmd
+        text: API
       - href: notebooks.qmd
         text: Notebooks
   page-footer:
     left: "pyensmallen documentation"
 
-jupyter: ../.venv/bin/python
+jupyter: python3
 
 execute:
   enabled: true
@@ -36,5 +45,41 @@ execute:
 format:
   html:
     theme: cosmo
-    css: styles.css
+    css:
+      - styles.css
+      - reference/_styles-quartodoc.css
     toc: true
+
+quartodoc:
+  package: pyensmallen
+  dir: reference
+  title: API Reference
+  sidebar: reference/_sidebar.yml
+  css: reference/_styles-quartodoc.css
+  parser: numpy
+  dynamic: true
+  sections:
+    - title: Estimators
+      desc: Supervised estimator classes with inference helpers.
+      contents:
+        - LinearRegression
+        - LogisticRegression
+        - PoissonRegression
+    - title: Optimizers
+      desc: Low-level optimizer bindings exposed from ensmallen.
+      contents:
+        - L_BFGS
+        - FrankWolfe
+        - SimplexFrankWolfe
+        - Adam
+        - AdaMax
+        - AMSGrad
+        - OptimisticAdam
+        - Nadam
+    - title: Objectives and GMM
+      desc: Low-level objectives and the GMM estimator interface.
+      contents:
+        - linear_obj
+        - logistic_obj
+        - poisson_obj
+        - EnsmallenEstimator

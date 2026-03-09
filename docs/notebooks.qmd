@@ -1,6 +1,6 @@
 # Notebooks
 
-The Quarto site includes executed versions of the core Python notebooks and links to the heavier benchmark notebooks.
+The Quarto site includes executed versions of the core Python notebooks and links to the heavier benchmark notebooks. For the primary performance results, use the dedicated [Benchmarks](benchmarks.qmd) page.
 
 ## Rendered in the site
 

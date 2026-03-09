@@ -1,3 +1,10 @@
+"""Estimator-style APIs built on top of the low-level optimizers.
+
+The classes in this module wrap common supervised-learning objectives in a
+scikit-learn-like interface with fitted attributes and lightweight inference
+helpers.
+"""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -11,11 +18,33 @@ from ._pyensmallen import L_BFGS
 
 @dataclass
 class OptimizationResult:
+    """Container for the raw optimizer output."""
+
     params: np.ndarray
     objective_value: float
 
 
 class _BaseEstimator:
+    """Shared implementation for optimizer-backed estimators.
+
+    Parameters
+    ----------
+    alpha : float, default=0.0
+        Overall penalty strength. Inference is only exposed when ``alpha == 0``.
+    l1_ratio : float, default=0.0
+        Mixing weight between smooth L1 and L2 penalties. ``0`` corresponds to
+        pure L2 penalization.
+    fit_intercept : bool, default=True
+        Whether to include an intercept term.
+    max_iterations : int, default=1000
+        Maximum number of optimizer iterations.
+    tolerance : float, default=1e-8
+        Minimum gradient norm passed to the underlying optimizer.
+    l1_smoothing : float, default=1e-6
+        Smoothing constant used in the differentiable approximation to the
+        absolute value penalty.
+    """
+
     def __init__(
         self,
         alpha: float = 0.0,
@@ -55,6 +84,20 @@ class _BaseEstimator:
         self.robust_intercept_std_error_ = None
 
     def fit(self, X: np.ndarray, y: np.ndarray):
+        """Fit the estimator to a design matrix and response vector.
+
+        Parameters
+        ----------
+        X : ndarray of shape (n_samples, n_features)
+            Feature matrix.
+        y : ndarray of shape (n_samples,)
+            Response vector.
+
+        Returns
+        -------
+        self
+            The fitted estimator.
+        """
         X_arr, y_arr = self._validate_inputs(X, y)
         X_design = self._design_matrix(X_arr)
         initial_params = self._initial_params(X_design, y_arr)
@@ -245,6 +288,20 @@ class _BaseEstimator:
     def confidence_intervals(
         self, alpha: float = 0.05, covariance_type: str = "nonrobust"
     ) -> np.ndarray:
+        """Return parameter confidence intervals.
+
+        Parameters
+        ----------
+        alpha : float, default=0.05
+            Two-sided significance level.
+        covariance_type : {"nonrobust", "robust"}, default="nonrobust"
+            Covariance estimator used to construct intervals.
+
+        Returns
+        -------
+        ndarray of shape (n_params, 2)
+            Lower and upper confidence bounds for each fitted parameter.
+        """
         if self.params_ is None:
             raise ValueError("Call fit before requesting confidence intervals")
         covariance, std_errors = self._inference_arrays(covariance_type=covariance_type)
@@ -261,6 +318,20 @@ class _BaseEstimator:
     def summary(
         self, alpha: float = 0.05, covariance_type: str = "nonrobust"
     ) -> np.ndarray:
+        """Return a compact numeric parameter summary.
+
+        Parameters
+        ----------
+        alpha : float, default=0.05
+            Two-sided significance level used for the confidence interval.
+        covariance_type : {"nonrobust", "robust"}, default="nonrobust"
+            Covariance estimator used to compute standard errors and intervals.
+
+        Returns
+        -------
+        ndarray of shape (n_params, 4)
+            Array with columns ``[coef, se, ci_lb, ci_ub]``.
+        """
         if self.params_ is None:
             raise ValueError("Call fit before requesting a summary")
         _, std_errors = self._inference_arrays(covariance_type=covariance_type)
@@ -275,6 +346,18 @@ class _BaseEstimator:
         )
 
     def decision_function(self, X: np.ndarray) -> np.ndarray:
+        """Compute the linear predictor for the provided feature matrix.
+
+        Parameters
+        ----------
+        X : ndarray of shape (n_samples, n_features)
+            Feature matrix.
+
+        Returns
+        -------
+        ndarray of shape (n_samples,)
+            The linear predictor ``X @ coef_ + intercept_``.
+        """
         X_arr = np.asarray(X, dtype=np.float64)
         if X_arr.ndim != 2:
             raise ValueError("X must be a 2D array")
@@ -285,9 +368,46 @@ class _BaseEstimator:
 
 
 class LinearRegression(_BaseEstimator):
+    """Linear regression estimated by direct optimization of squared loss.
+
+    The fitted model minimizes the average squared-error objective with optional
+    smooth penalization. For unregularized fits, both classical and robust
+    sandwich covariance estimators are available.
+
+    Attributes
+    ----------
+    coef_ : ndarray of shape (n_features,)
+        Estimated slope coefficients.
+    intercept_ : float
+        Estimated intercept. Equals ``0.0`` when ``fit_intercept=False``.
+    params_ : ndarray of shape (n_params,)
+        Full parameter vector, including the intercept when present.
+    std_errors_ : ndarray or None
+        Classical standard errors for ``params_``.
+    robust_std_errors_ : ndarray or None
+        Heteroskedasticity-robust sandwich standard errors for ``params_``.
+    """
+
     def _initial_params(self, X: np.ndarray, y: np.ndarray) -> np.ndarray:
         params, *_ = np.linalg.lstsq(X, y, rcond=None)
         return np.asarray(params, dtype=np.float64)
+
+    def fit(self, X: np.ndarray, y: np.ndarray):
+        """Fit the linear regression model.
+
+        Parameters
+        ----------
+        X : ndarray of shape (n_samples, n_features)
+            Feature matrix.
+        y : ndarray of shape (n_samples,)
+            Response vector.
+
+        Returns
+        -------
+        LinearRegression
+            The fitted estimator.
+        """
+        return super().fit(X, y)
 
     def _loss_and_gradient(
         self, X: np.ndarray, y: np.ndarray, params: np.ndarray
@@ -319,9 +439,60 @@ class LinearRegression(_BaseEstimator):
         return (X.T @ X) / n_obs
 
     def predict(self, X: np.ndarray) -> np.ndarray:
+        """Predict the conditional mean response.
+
+        Parameters
+        ----------
+        X : ndarray of shape (n_samples, n_features)
+            Feature matrix.
+
+        Returns
+        -------
+        ndarray of shape (n_samples,)
+            Predicted mean response.
+        """
         return self.decision_function(X)
 
+    def confidence_intervals(
+        self, alpha: float = 0.05, covariance_type: str = "nonrobust"
+    ) -> np.ndarray:
+        """Return coefficient confidence intervals.
+
+        Parameters
+        ----------
+        alpha : float, default=0.05
+            Two-sided significance level.
+        covariance_type : {"nonrobust", "robust"}, default="nonrobust"
+            Covariance estimator used to construct intervals.
+
+        Returns
+        -------
+        ndarray of shape (n_params, 2)
+            Lower and upper confidence bounds for each fitted parameter.
+        """
+        return super().confidence_intervals(alpha=alpha, covariance_type=covariance_type)
+
+    def summary(
+        self, alpha: float = 0.05, covariance_type: str = "nonrobust"
+    ) -> np.ndarray:
+        """Return ``[coef, se, ci_lb, ci_ub]`` for each fitted parameter."""
+        return super().summary(alpha=alpha, covariance_type=covariance_type)
+
     def score(self, X: np.ndarray, y: np.ndarray) -> float:
+        """Return the coefficient of determination, ``R^2``.
+
+        Parameters
+        ----------
+        X : ndarray of shape (n_samples, n_features)
+            Feature matrix.
+        y : ndarray of shape (n_samples,)
+            Observed response vector.
+
+        Returns
+        -------
+        float
+            The in-sample ``R^2`` statistic.
+        """
         y_arr = np.asarray(y, dtype=np.float64).reshape(-1)
         residuals = y_arr - self.predict(X)
         total = y_arr - y_arr.mean()
@@ -332,10 +503,47 @@ class LinearRegression(_BaseEstimator):
 
 
 class LogisticRegression(_BaseEstimator):
+    """Binary logistic regression estimated by maximum likelihood.
+
+    The model minimizes the negative Bernoulli log-likelihood. For
+    unregularized fits, the class exposes classical inverse-information
+    covariance estimates and robust QMLE sandwich covariance estimates.
+
+    Attributes
+    ----------
+    coef_ : ndarray of shape (n_features,)
+        Estimated slope coefficients.
+    intercept_ : float
+        Estimated intercept. Equals ``0.0`` when ``fit_intercept=False``.
+    params_ : ndarray of shape (n_params,)
+        Full parameter vector, including the intercept when present.
+    std_errors_ : ndarray or None
+        Classical standard errors for ``params_``.
+    robust_std_errors_ : ndarray or None
+        Robust QMLE standard errors for ``params_``.
+    """
+
     def _validate_target(self, y: np.ndarray) -> None:
         unique_values = np.unique(y)
         if not np.all(np.isin(unique_values, [0.0, 1.0])):
             raise ValueError("LogisticRegression expects a binary target encoded as 0/1")
+
+    def fit(self, X: np.ndarray, y: np.ndarray):
+        """Fit the logistic regression model.
+
+        Parameters
+        ----------
+        X : ndarray of shape (n_samples, n_features)
+            Feature matrix.
+        y : ndarray of shape (n_samples,)
+            Binary response encoded as ``0`` or ``1``.
+
+        Returns
+        -------
+        LogisticRegression
+            The fitted estimator.
+        """
+        return super().fit(X, y)
 
     def _initial_params(self, X: np.ndarray, y: np.ndarray) -> np.ndarray:
         params = np.zeros(X.shape[1], dtype=np.float64)
@@ -376,21 +584,84 @@ class LogisticRegression(_BaseEstimator):
         return (X.T @ (weights[:, np.newaxis] * X)) / n_obs
 
     def predict_proba(self, X: np.ndarray) -> np.ndarray:
+        """Return class probabilities for the binary response.
+
+        Parameters
+        ----------
+        X : ndarray of shape (n_samples, n_features)
+            Feature matrix.
+
+        Returns
+        -------
+        ndarray of shape (n_samples, 2)
+            Column-stacked probabilities for classes ``0`` and ``1``.
+        """
         probs = expit(self.decision_function(X))
         return np.column_stack([1.0 - probs, probs])
 
     def predict(self, X: np.ndarray) -> np.ndarray:
+        """Predict binary class labels using a 0.5 threshold."""
         return (self.predict_proba(X)[:, 1] >= 0.5).astype(np.int64)
 
+    def confidence_intervals(
+        self, alpha: float = 0.05, covariance_type: str = "nonrobust"
+    ) -> np.ndarray:
+        """Return coefficient confidence intervals."""
+        return super().confidence_intervals(alpha=alpha, covariance_type=covariance_type)
+
+    def summary(
+        self, alpha: float = 0.05, covariance_type: str = "nonrobust"
+    ) -> np.ndarray:
+        """Return ``[coef, se, ci_lb, ci_ub]`` for each fitted parameter."""
+        return super().summary(alpha=alpha, covariance_type=covariance_type)
+
     def score(self, X: np.ndarray, y: np.ndarray) -> float:
+        """Return mean classification accuracy on the provided sample."""
         y_arr = np.asarray(y, dtype=np.int64).reshape(-1)
         return float(np.mean(self.predict(X) == y_arr))
 
 
 class PoissonRegression(_BaseEstimator):
+    """Poisson regression estimated by maximum likelihood.
+
+    The model minimizes the negative Poisson log-likelihood. For unregularized
+    fits, the class exposes classical inverse-information covariance estimates
+    and robust QMLE sandwich covariance estimates.
+
+    Attributes
+    ----------
+    coef_ : ndarray of shape (n_features,)
+        Estimated slope coefficients.
+    intercept_ : float
+        Estimated intercept. Equals ``0.0`` when ``fit_intercept=False``.
+    params_ : ndarray of shape (n_params,)
+        Full parameter vector, including the intercept when present.
+    std_errors_ : ndarray or None
+        Classical standard errors for ``params_``.
+    robust_std_errors_ : ndarray or None
+        Robust QMLE standard errors for ``params_``.
+    """
+
     def _validate_target(self, y: np.ndarray) -> None:
         if np.any(y < 0):
             raise ValueError("PoissonRegression expects a non-negative target")
+
+    def fit(self, X: np.ndarray, y: np.ndarray):
+        """Fit the Poisson regression model.
+
+        Parameters
+        ----------
+        X : ndarray of shape (n_samples, n_features)
+            Feature matrix.
+        y : ndarray of shape (n_samples,)
+            Non-negative count response.
+
+        Returns
+        -------
+        PoissonRegression
+            The fitted estimator.
+        """
+        return super().fit(X, y)
 
     def _initial_params(self, X: np.ndarray, y: np.ndarray) -> np.ndarray:
         params = np.zeros(X.shape[1], dtype=np.float64)
@@ -428,9 +699,23 @@ class PoissonRegression(_BaseEstimator):
         return (X.T @ (mean[:, np.newaxis] * X)) / n_obs
 
     def predict(self, X: np.ndarray) -> np.ndarray:
+        """Predict the conditional mean count."""
         return np.exp(np.clip(self.decision_function(X), -30.0, 30.0))
 
+    def confidence_intervals(
+        self, alpha: float = 0.05, covariance_type: str = "nonrobust"
+    ) -> np.ndarray:
+        """Return coefficient confidence intervals."""
+        return super().confidence_intervals(alpha=alpha, covariance_type=covariance_type)
+
+    def summary(
+        self, alpha: float = 0.05, covariance_type: str = "nonrobust"
+    ) -> np.ndarray:
+        """Return ``[coef, se, ci_lb, ci_ub]`` for each fitted parameter."""
+        return super().summary(alpha=alpha, covariance_type=covariance_type)
+
     def score(self, X: np.ndarray, y: np.ndarray) -> float:
+        """Return the negative mean Poisson deviance."""
         y_arr = np.asarray(y, dtype=np.float64).reshape(-1)
         mean = np.clip(self.predict(X), 1e-10, None)
         with np.errstate(divide="ignore", invalid="ignore"):

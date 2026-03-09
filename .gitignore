@@ -170,3 +170,5 @@ ensmallen/
 docs/_site/
 .quarto/
 synthlearners_repo/
+docs/reference/
+docs/objects.json

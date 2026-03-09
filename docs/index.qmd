@@ -34,10 +34,11 @@ uv pip install --python .venv/bin/python --no-build-isolation -e ".[full]"
 ## Documentation map
 
 - [Optimizers](optimizers.qmd): low-level optimizer classes and when to use them
+- [Benchmarks](benchmarks.qmd): runtime and convergence comparisons against SciPy and statsmodels
 - [Estimators](estimators.qmd): supervised estimators, fitted attributes, and inference
 - [Notebooks](notebooks.qmd): examples and benchmark notebooks in this repository
 
 ## Notes
 
 - The `full` extra installs Python packages required to run tests and notebooks.
-- Quarto itself is an external CLI. Render this site with `quarto render docs`.
+- Quarto itself is an external CLI. Render this site with `scripts/render_docs.sh`.
