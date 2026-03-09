@@ -17,7 +17,12 @@ jax.config.update("jax_enable_x64", True)
 
 class EnsmallenEstimator:
     """
-    GMM Estimator using PyEnsmallen optimization backend with JAX autodifferentiation.
+    Generalized method of moments estimator with JAX-powered derivatives.
+
+    The estimator uses JAX to evaluate gradients and Jacobians while relying
+    on the ``pyensmallen`` optimization backend for numerical minimization.
+    It supports two-step GMM through an optimal weighting matrix update and
+    provides asymptotic as well as bootstrap-based uncertainty estimates.
     """
 
     def __init__(
@@ -26,13 +31,20 @@ class EnsmallenEstimator:
         weighting_matrix: Union[str, np.ndarray] = "optimal",
     ):
         """
-        Initialize GMM estimator.
+        Initialize a GMM estimator.
 
-        Args:
-            moment_cond: Function that computes moment conditions. Should be JAX-compatible.
-            weighting_matrix: Either "optimal" for two-step GMM or a custom weighting matrix
+        Parameters
+        ----------
+        moment_cond : Callable
+            Moment function returning the per-observation moment vector
+            ``g_i(z_i, y_i, x_i, beta)``. The function must be compatible with
+            JAX arrays.
+        weighting_matrix : {"optimal"} or ndarray, default="optimal"
+            Weighting matrix used in the GMM criterion. When set to
+            ``"optimal"``, the estimator performs a two-step update using the
+            sample covariance of the moment conditions.
         """
-        
+
         self.moment_cond = moment_cond
         self.weighting_matrix = weighting_matrix
 
@@ -59,14 +71,18 @@ class EnsmallenEstimator:
     def gmm_objective(self, beta: np.ndarray, gradient: np.ndarray) -> float:
         """
         Compute GMM objective function value and gradient for PyEnsmallen.
-        Uses JAX for autodifferentiation.
 
-        Args:
-            beta: Parameter vector
-            gradient: Will be filled with gradient values
+        Parameters
+        ----------
+        beta : ndarray of shape (n_params,)
+            Candidate parameter vector.
+        gradient : ndarray of shape (n_params,)
+            Output array filled in-place with the gradient of the criterion.
 
-        Returns:
-            Objective function value
+        Returns
+        -------
+        float
+            Value of the GMM objective at ``beta``.
         """
         # Convert numpy arrays to JAX arrays if not done already
         if self.z_jax_ is None:
@@ -119,14 +135,20 @@ class EnsmallenEstimator:
         epsi: float = 1e-8,
     ) -> np.ndarray:
         """
-        Calculate optimal weighting matrix: (E[g_i g_i'])^(-1)
+        Compute the optimal GMM weighting matrix.
 
-        Args:
-            moments: Matrix of moment conditions
-            epsi: Regularization parameter for stability
+        Parameters
+        ----------
+        moments : ndarray of shape (n_samples, n_moments)
+            Per-observation moment evaluations at the current parameter value.
+        epsi : float, default=1e-8
+            Diagonal regularization added before inversion for numerical
+            stability.
 
-        Returns:
-            Optimal weighting matrix
+        Returns
+        -------
+        ndarray of shape (n_moments, n_moments)
+            Estimated optimal weighting matrix.
         """
         # Compute the moment covariance matrix with regularization for stability
         S = (1 / self.n_) * (moments.T @ moments)
@@ -143,11 +165,22 @@ class EnsmallenEstimator:
         """
         Fit the GMM model using PyEnsmallen optimizer with JAX gradients.
 
-        Args:
-            z: Instrument matrix
-            y: Outcome vector
-            x: Covariate matrix (including intercept)
-            verbose: Whether to print optimization details
+        Parameters
+        ----------
+        z : ndarray of shape (n_samples, n_instruments)
+            Instrument matrix.
+        y : ndarray of shape (n_samples,)
+            Outcome vector.
+        x : ndarray of shape (n_samples, n_params)
+            Regressor matrix. Include a column of ones if an intercept is
+            desired.
+        verbose : bool, default=False
+            Whether to print optimization and inference warnings.
+
+        Returns
+        -------
+        None
+            Stores fitted parameters and inference results on the estimator.
         """
         # Store data
         self.z_, self.y_, self.x_ = z, y, x
@@ -192,16 +225,24 @@ class EnsmallenEstimator:
     ) -> Union[np.ndarray, jnp.ndarray]:
         """
         Standard IV moment function: z_i * (y_i - x_i'β).
+
         Works with both NumPy and JAX arrays.
 
-        Args:
-            z: Instrument matrix
-            y: Outcome vector
-            x: Covariate matrix (including intercept)
-            beta: Parameter vector
+        Parameters
+        ----------
+        z : ndarray
+            Instrument matrix.
+        y : ndarray
+            Outcome vector.
+        x : ndarray
+            Regressor matrix.
+        beta : ndarray
+            Parameter vector.
 
-        Returns:
-            Matrix of moment conditions
+        Returns
+        -------
+        ndarray
+            Matrix of per-observation moment conditions.
         """
         if isinstance(z, jnp.ndarray):
             # JAX implementation
@@ -220,11 +261,19 @@ class EnsmallenEstimator:
         """
         Generate summary statistics for the fitted model.
 
-        Args:
-            prec: Precision for rounding results
+        Parameters
+        ----------
+        prec : int, default=4
+            Number of decimal places used in the reported table.
+        param_names : list of str or None, default=None
+            Optional parameter labels. When omitted, parameters are labeled
+            ``theta_0``, ``theta_1``, and so on.
 
-        Returns:
-            DataFrame with model summary statistics
+        Returns
+        -------
+        DataFrame
+            Summary table containing coefficients, standard errors,
+            test statistics, p-values, and confidence intervals.
         """
         if not hasattr(self, "theta_") or self.std_errors_ is None:
             raise ValueError("Model must be fitted with valid standard errors first")
@@ -265,10 +314,12 @@ class EnsmallenEstimator:
 
     def compute_asymptotic_variance(self) -> None:
         """
-        Compute asymptotic variance and standard errors.
-        # Compute Jacobian of moment conditions
-        Compute asymptotic variance-covariance matrix and standard errors.
-        This version is robust to the choice of weighting matrix.
+        Compute the asymptotic covariance matrix and standard errors.
+
+        Returns
+        -------
+        None
+            Updates ``vtheta_`` and ``std_errors_`` in place.
         """
         # 1. Jacobian of moment conditions: G = E[∂g/∂β']
         self.Gamma_ = self.jacobian_moment_cond()
@@ -298,8 +349,10 @@ class EnsmallenEstimator:
         """
         Compute Jacobian of moment conditions using JAX.
 
-        Returns:
-            Jacobian matrix
+        Returns
+        -------
+        ndarray of shape (n_moments, n_params)
+            Jacobian of the mean moment vector with respect to the parameters.
         """
         # Use JAX's jacfwd to compute the Jacobian of mean moment conditions
         beta_jax = jnp.array(self.theta_, dtype=jnp.float64)
@@ -324,13 +377,19 @@ class EnsmallenEstimator:
         It bootstraps the score functions (moment conditions) rather than
         recomputing the GMM estimator for each bootstrap sample.
 
-        Args:
-            n_bootstrap: Number of bootstrap iterations
-            seed: Random seed for reproducibility
-            verbose: Whether to print progress
+        Parameters
+        ----------
+        n_bootstrap : int, default=1000
+            Number of bootstrap draws.
+        seed : int or None, default=None
+            Random seed for reproducibility.
+        verbose : bool, default=False
+            Whether to print bootstrap progress.
 
-        Returns:
-            Bootstrap standard errors
+        Returns
+        -------
+        ndarray of shape (n_params,)
+            Bootstrap standard errors for the fitted parameter vector.
         """
         if not hasattr(self, "theta_"):
             raise ValueError("Model must be fitted first")
@@ -359,7 +418,6 @@ class EnsmallenEstimator:
         G, W = self.Gamma_, self.W_
         inv_GWG = np.linalg.inv(G.T @ W @ G)
         M = -inv_GWG @ G.T @ W
-
 
         # Compute the score functions for each observation
         # Z_i = g(X_i, theta)
@@ -409,14 +467,21 @@ class EnsmallenEstimator:
         """
         Compute bootstrap standard errors using batched processing.
 
-        Args:
-            n_bootstrap: Number of bootstrap iterations
-            seed: Random seed for reproducibility
-            batch_size: Number of bootstrap samples to process in each batch
-            verbose: Whether to print progress
+        Parameters
+        ----------
+        n_bootstrap : int, default=1000
+            Number of bootstrap draws.
+        seed : int or None, default=None
+            Random seed for reproducibility.
+        batch_size : int, default=50
+            Number of bootstrap problems processed together.
+        verbose : bool, default=False
+            Whether to print bootstrap progress.
 
-        Returns:
-            Bootstrap standard errors
+        Returns
+        -------
+        ndarray of shape (n_params,)
+            Bootstrap standard errors for the fitted parameter vector.
         """
         if not hasattr(self, "theta_"):
             raise ValueError("Model must be fitted first")
@@ -469,13 +534,19 @@ class EnsmallenEstimator:
         """
         Run a single bootstrap iteration.
 
-        Args:
-            indices: Indices for bootstrap sample
-            iteration: Bootstrap iteration number (for seed)
-            seed: Base random seed
+        Parameters
+        ----------
+        indices : ndarray
+            Observation indices defining the bootstrap resample.
+        iteration : int, default=0
+            Bootstrap iteration number used to offset the base seed.
+        seed : int or None, default=None
+            Base random seed.
 
-        Returns:
-            Bootstrap parameter estimates
+        Returns
+        -------
+        ndarray of shape (n_params,)
+            Parameter estimate for the bootstrap sample.
         """
         # Set seed for this iteration if provided
         if seed is not None:

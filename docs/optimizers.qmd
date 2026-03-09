@@ -1,0 +1,93 @@
+# Optimizers
+
+The bindings expose low-level optimizer classes directly from `ensmallen`. These are useful when you want to optimize a custom objective instead of using the estimator wrappers.
+
+## Available optimizers
+
+### `L_BFGS`
+
+Primary smooth optimizer for likelihood and M-estimation problems.
+
+Use when:
+
+- the objective is differentiable
+- you can evaluate the full objective and gradient
+- you want fast, stable convergence on moderate-dimensional parameter vectors
+
+Exposed controls include:
+
+- `numBasis`
+- `maxIterations`
+- `armijoConstant`
+- `wolfe`
+- `minGradientNorm`
+- `factr`
+- `maxLineSearchTrials`
+- `minStep`
+- `maxStep`
+
+Basic pattern:
+
+```python
+import numpy as np
+import pyensmallen as pye
+
+def objective(params, gradient):
+    gradient[:] = 2 * params
+    return float(np.dot(params, params))
+
+opt = pye.L_BFGS()
+theta0 = np.array([1.0, -1.0])
+theta_hat = opt.optimize(objective, theta0)
+```
+
+### `FrankWolfe`
+
+Constrained first-order optimizer for smooth objectives over an `L_p` ball.
+
+Use when:
+
+- you want explicit norm constraints
+- you are using lasso, ridge, or elastic-net style feasible sets
+- projection-free updates are preferable to unconstrained optimization
+
+### `SimplexFrankWolfe`
+
+Frank-Wolfe variant specialized to simplex constraints.
+
+Use when:
+
+- coefficients must be nonnegative and sum to one
+- you are fitting synthetic-control or balancing-weight style models
+
+### Adam-family optimizers
+
+Available variants:
+
+- `Adam`
+- `AdaMax`
+- `AMSGrad`
+- `OptimisticAdam`
+- `Nadam`
+
+These are currently exposed as low-level optimizers for differentiable objectives.
+
+Use when:
+
+- you want a first-order optimizer
+- your objective is noisy or harder to optimize with quasi-Newton methods
+- you are experimenting with iterative stochastic-style updates
+
+Important note:
+
+The current wrapper still treats the objective as a full-batch callable. So these optimizers are exposed, but the true mini-batch/separable-objective workflow is still thinner than it should be.
+
+## Relationship to estimator classes
+
+If you are fitting standard regression models, prefer:
+
+- `LinearRegression`
+- `LogisticRegression`
+- `PoissonRegression`
+
+If you are fitting a custom objective, or need to reproduce a low-level optimization setup from a notebook or paper, use the optimizer classes directly.

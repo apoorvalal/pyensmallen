@@ -15,7 +15,9 @@ It also includes common loss functions for machine learning:
 
 import os
 
+from . import losses
 from ._pyensmallen import *
+from .estimators import LinearRegression, LogisticRegression, PoissonRegression
 from .losses import linear_obj, logistic_obj, poisson_obj
 
 # Core optimizers and loss functions (always available)
@@ -31,11 +33,16 @@ __all__ = [
     "linear_obj",
     "logistic_obj",
     "poisson_obj",
+    "LinearRegression",
+    "LogisticRegression",
+    "PoissonRegression",
+    "losses",
 ]
 
 # Conditionally import GMM functionality (requires JAX)
 try:
     from .gmm import EnsmallenEstimator
+
     __all__.append("EnsmallenEstimator")
 except ImportError:
     # JAX not available - install with: pip install pyensmallen[gmm]

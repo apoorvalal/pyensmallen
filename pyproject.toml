@@ -2,6 +2,7 @@
 requires = [
     "setuptools >=42",
     "wheel",
+    "ninja",
     "pybind11>=2.4",
     "meson-python",
     "numpy",
@@ -23,13 +24,35 @@ authors = [
     { name = 'Apoorva Lal', email = 'lal.apoorva@gmail.com' },
     { name = 'Matthew Wardrop', email = 'mpwardrop@gmail.com' },
 ]
+dependencies = [
+    "numpy",
+    "scipy",
+]
 
 [project.optional-dependencies]
 gmm = ["jax", "jaxlib"]
+full = [
+    "cvxpy",
+    "griffe<1",
+    "ipywidgets",
+    "jax",
+    "jaxlib",
+    "joblib",
+    "jupyter",
+    "matplotlib",
+    "optax",
+    "pandas",
+    "pytest",
+    "quartodoc",
+    "scikit-learn>=1.7.2",
+    "seaborn",
+    "statsmodels",
+    "toolz",
+    "tqdm",
+]
 
 [tool.setuptools_scm]
 write_to = "pyensmallen/_version.py"
 write_to_template = '__version__ = "{version}"'
 # Also write a simple VERSION file for meson
 fallback_version = "0.0.0"
-
