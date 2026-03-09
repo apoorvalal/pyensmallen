@@ -18,20 +18,23 @@ These notebooks are part of the Quarto build and are rendered as documentation p
 - [autodiff_mnl](notebooks/autodiff_mnl.html)
   JAX autodiff for multinomial logit with `pyensmallen` as the optimizer backend.
 
+- [regularization_comparison](notebooks/regularization_comparison.html)
+  Regularized estimator demo with `pyensmallen` versus scikit-learn and MSE path plots.
+
 ## Source-only notebooks
 
 These remain in the repository but are not part of the always-executed Quarto build:
 
-- [likelihood_comparison.ipynb](../notebooks/likelihood_comparison.ipynb)
+- [likelihood_comparison.ipynb](https://github.com/apoorvalal/pyensmallen/blob/feature/estimator_classes/notebooks/likelihood_comparison.ipynb)
   Large benchmark notebook comparing `pyensmallen` against SciPy, statsmodels, CVXPY, and JAX.
 
-- [likelihood_comparison_estimators.ipynb](../notebooks/likelihood_comparison_estimators.ipynb)
+- [likelihood_comparison_estimators.ipynb](https://github.com/apoorvalal/pyensmallen/blob/feature/estimator_classes/notebooks/likelihood_comparison_estimators.ipynb)
   Benchmark notebook using the estimator-class API.
 
-- [synth.ipynb](../notebooks/synth.ipynb)
+- [synth.ipynb](https://github.com/apoorvalal/pyensmallen/blob/feature/estimator_classes/notebooks/synth.ipynb)
   Synthetic-control style balancing weights and simulation work.
 
-- [compare_r.ipynb](../notebooks/compare_r.ipynb)
+- [compare_r.ipynb](https://github.com/apoorvalal/pyensmallen/blob/feature/estimator_classes/notebooks/compare_r.ipynb)
   R notebook, not part of the Python-backed docs build.
 
 ## Build behavior

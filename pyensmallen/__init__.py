@@ -42,6 +42,7 @@ __all__ = [
 # Conditionally import GMM functionality (requires JAX)
 try:
     from .gmm import EnsmallenEstimator
+
     __all__.append("EnsmallenEstimator")
 except ImportError:
     # JAX not available - install with: pip install pyensmallen[gmm]

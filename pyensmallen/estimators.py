@@ -13,7 +13,7 @@ import numpy as np
 from scipy.special import expit, logit
 from scipy.stats import norm
 
-from ._pyensmallen import L_BFGS
+from ._pyensmallen import FrankWolfe, L_BFGS
 
 
 @dataclass
@@ -30,10 +30,13 @@ class _BaseEstimator:
     Parameters
     ----------
     alpha : float, default=0.0
-        Overall penalty strength. Inference is only exposed when ``alpha == 0``.
+        Overall regularization strength. Larger values imply tighter feasible
+        sets and therefore stronger shrinkage. Inference is only exposed when
+        ``alpha == 0``.
     l1_ratio : float, default=0.0
-        Mixing weight between smooth L1 and L2 penalties. ``0`` corresponds to
-        pure L2 penalization.
+        Regularization family selector. ``0`` corresponds to an L2 ball,
+        ``1`` corresponds to an L1 ball. Mixed values are currently not
+        supported by the exact constrained backend.
     fit_intercept : bool, default=True
         Whether to include an intercept term.
     max_iterations : int, default=1000
@@ -41,8 +44,8 @@ class _BaseEstimator:
     tolerance : float, default=1e-8
         Minimum gradient norm passed to the underlying optimizer.
     l1_smoothing : float, default=1e-6
-        Smoothing constant used in the differentiable approximation to the
-        absolute value penalty.
+        Retained for backward compatibility. The current exact constrained
+        regularization path does not use this argument.
     """
 
     def __init__(
@@ -74,6 +77,8 @@ class _BaseEstimator:
         self.coef_ = None
         self.intercept_ = None
         self.objective_value_ = None
+        self.optimizer_name_ = None
+        self.regularization_ = None
         self.covariance_ = None
         self.std_errors_ = None
         self.coef_std_errors_ = None
@@ -149,10 +154,31 @@ class _BaseEstimator:
         initial_params: np.ndarray,
     ) -> OptimizationResult:
         objective = self._objective(X, y)
-        optimizer = L_BFGS()
-        optimizer.maxIterations = self.max_iterations
-        optimizer.minGradientNorm = self.tolerance
-        params = optimizer.optimize(objective, np.ascontiguousarray(initial_params))
+        regularization = self._regularization_mode()
+
+        if regularization == "none":
+            optimizer = L_BFGS()
+            optimizer.maxIterations = self.max_iterations
+            optimizer.minGradientNorm = self.tolerance
+            params = optimizer.optimize(objective, np.ascontiguousarray(initial_params))
+            self.optimizer_name_ = "L_BFGS"
+        else:
+            p = 1.0 if regularization == "l1" else 2.0
+            fw = FrankWolfe(
+                p,
+                np.ascontiguousarray(self._constraint_weights(initial_params.shape[0])),
+                self.max_iterations,
+                self.tolerance,
+            )
+            params = fw.optimize(
+                objective,
+                np.ascontiguousarray(
+                    self._regularized_initial_params(initial_params, regularization)
+                ),
+            )
+            self.optimizer_name_ = "FrankWolfe"
+
+        self.regularization_ = regularization
 
         grad = np.zeros_like(params)
         objective_value = objective(params, grad)
@@ -165,36 +191,30 @@ class _BaseEstimator:
             loss_value, grad = self._loss_and_gradient(X, y, params)
             loss_value = loss_value / n_samples
             grad = grad / n_samples
-
-            penalty_value, penalty_grad = self._penalty(params)
-            gradient[:] = grad + penalty_grad
-            return float(loss_value + penalty_value)
+            gradient[:] = grad
+            return float(loss_value)
 
         return objective
 
-    def _penalty(self, params: np.ndarray) -> tuple[float, np.ndarray]:
-        penalty_params = params[1:] if self.fit_intercept else params
-        penalty_grad = np.zeros_like(params)
+    def _regularization_mode(self) -> str:
+        if self.alpha == 0:
+            return "none"
+        if np.isclose(self.l1_ratio, 0.0):
+            return "l2"
+        if np.isclose(self.l1_ratio, 1.0):
+            return "l1"
+        raise ValueError(
+            "Exact regularization currently supports l1_ratio values of 0.0 "
+            "(L2) or 1.0 (L1) only"
+        )
 
-        if self.alpha == 0 or penalty_params.size == 0:
-            return 0.0, penalty_grad
+    def _constraint_weights(self, n_params: int) -> np.ndarray:
+        return np.full(n_params, self.alpha, dtype=np.float64)
 
-        l2_value = 0.5 * np.dot(penalty_params, penalty_params)
-        l2_grad = penalty_params
-
-        smooth_abs = np.sqrt(penalty_params**2 + self.l1_smoothing**2)
-        l1_value = np.sum(smooth_abs - self.l1_smoothing)
-        l1_grad = penalty_params / smooth_abs
-
-        value = self.alpha * ((1 - self.l1_ratio) * l2_value + self.l1_ratio * l1_value)
-        grad = self.alpha * ((1 - self.l1_ratio) * l2_grad + self.l1_ratio * l1_grad)
-
-        if self.fit_intercept:
-            penalty_grad[1:] = grad
-        else:
-            penalty_grad[:] = grad
-
-        return float(value), penalty_grad
+    def _regularized_initial_params(
+        self, initial_params: np.ndarray, regularization: str
+    ) -> np.ndarray:
+        return np.zeros_like(initial_params)
 
     def _initial_params(self, X: np.ndarray, y: np.ndarray) -> np.ndarray:
         return np.zeros(X.shape[1], dtype=np.float64)
@@ -340,7 +360,9 @@ class _BaseEstimator:
                 "Summary output is only available for unregularized fitted models"
             )
 
-        intervals = self.confidence_intervals(alpha=alpha, covariance_type=covariance_type)
+        intervals = self.confidence_intervals(
+            alpha=alpha, covariance_type=covariance_type
+        )
         return np.column_stack(
             [self.params_, std_errors, intervals[:, 0], intervals[:, 1]]
         )
@@ -370,9 +392,10 @@ class _BaseEstimator:
 class LinearRegression(_BaseEstimator):
     """Linear regression estimated by direct optimization of squared loss.
 
-    The fitted model minimizes the average squared-error objective with optional
-    smooth penalization. For unregularized fits, both classical and robust
-    sandwich covariance estimators are available.
+    The fitted model minimizes the average squared-error objective. When
+    ``alpha > 0``, the optimization backend switches to Frank-Wolfe over an
+    exact L1 or L2 ball, depending on ``l1_ratio``. For unregularized fits,
+    both classical and robust sandwich covariance estimators are available.
 
     Attributes
     ----------
@@ -470,7 +493,9 @@ class LinearRegression(_BaseEstimator):
         ndarray of shape (n_params, 2)
             Lower and upper confidence bounds for each fitted parameter.
         """
-        return super().confidence_intervals(alpha=alpha, covariance_type=covariance_type)
+        return super().confidence_intervals(
+            alpha=alpha, covariance_type=covariance_type
+        )
 
     def summary(
         self, alpha: float = 0.05, covariance_type: str = "nonrobust"
@@ -506,8 +531,10 @@ class LogisticRegression(_BaseEstimator):
     """Binary logistic regression estimated by maximum likelihood.
 
     The model minimizes the negative Bernoulli log-likelihood. For
-    unregularized fits, the class exposes classical inverse-information
-    covariance estimates and robust QMLE sandwich covariance estimates.
+    regularized fits, the optimizer switches to Frank-Wolfe over an exact L1
+    or L2 ball. For unregularized fits, the class exposes classical
+    inverse-information covariance estimates and robust QMLE sandwich
+    covariance estimates.
 
     Attributes
     ----------
@@ -526,7 +553,9 @@ class LogisticRegression(_BaseEstimator):
     def _validate_target(self, y: np.ndarray) -> None:
         unique_values = np.unique(y)
         if not np.all(np.isin(unique_values, [0.0, 1.0])):
-            raise ValueError("LogisticRegression expects a binary target encoded as 0/1")
+            raise ValueError(
+                "LogisticRegression expects a binary target encoded as 0/1"
+            )
 
     def fit(self, X: np.ndarray, y: np.ndarray):
         """Fit the logistic regression model.
@@ -607,7 +636,9 @@ class LogisticRegression(_BaseEstimator):
         self, alpha: float = 0.05, covariance_type: str = "nonrobust"
     ) -> np.ndarray:
         """Return coefficient confidence intervals."""
-        return super().confidence_intervals(alpha=alpha, covariance_type=covariance_type)
+        return super().confidence_intervals(
+            alpha=alpha, covariance_type=covariance_type
+        )
 
     def summary(
         self, alpha: float = 0.05, covariance_type: str = "nonrobust"
@@ -624,9 +655,10 @@ class LogisticRegression(_BaseEstimator):
 class PoissonRegression(_BaseEstimator):
     """Poisson regression estimated by maximum likelihood.
 
-    The model minimizes the negative Poisson log-likelihood. For unregularized
-    fits, the class exposes classical inverse-information covariance estimates
-    and robust QMLE sandwich covariance estimates.
+    The model minimizes the negative Poisson log-likelihood. For regularized
+    fits, the optimizer switches to Frank-Wolfe over an exact L1 or L2 ball.
+    For unregularized fits, the class exposes classical inverse-information
+    covariance estimates and robust QMLE sandwich covariance estimates.
 
     Attributes
     ----------
@@ -706,7 +738,9 @@ class PoissonRegression(_BaseEstimator):
         self, alpha: float = 0.05, covariance_type: str = "nonrobust"
     ) -> np.ndarray:
         """Return coefficient confidence intervals."""
-        return super().confidence_intervals(alpha=alpha, covariance_type=covariance_type)
+        return super().confidence_intervals(
+            alpha=alpha, covariance_type=covariance_type
+        )
 
     def summary(
         self, alpha: float = 0.05, covariance_type: str = "nonrobust"

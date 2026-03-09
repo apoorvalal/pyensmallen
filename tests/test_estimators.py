@@ -41,7 +41,7 @@ def test_logistic_regression_estimator_predicts_probabilities():
     probs = expit(intercept + X @ coef)
     y = np.random.binomial(1, probs)
 
-    model = pye.LogisticRegression(alpha=0.05, l1_ratio=0.2)
+    model = pye.LogisticRegression(alpha=0.1, l1_ratio=0.0)
     model.fit(X, y)
     fitted_probs = model.predict_proba(X)
 
@@ -49,6 +49,9 @@ def test_logistic_regression_estimator_predicts_probabilities():
     assert np.allclose(fitted_probs.sum(axis=1), 1.0, atol=1e-8)
     assert model.score(X, y) > 0.7
     assert model.coef_std_errors_ is None
+    assert model.optimizer_name_ == "FrankWolfe"
+    assert model.regularization_ == "l2"
+    assert np.linalg.norm(model.coef_) <= 1.0 / model.alpha + 1e-6
 
 
 def test_poisson_regression_estimator_recovers_mean_structure():
@@ -60,13 +63,15 @@ def test_poisson_regression_estimator_recovers_mean_structure():
     mean = np.exp(intercept + X @ coef)
     y = np.random.poisson(mean)
 
-    model = pye.PoissonRegression(alpha=0.02, l1_ratio=0.0)
+    model = pye.PoissonRegression(alpha=1.0, l1_ratio=1.0)
     model.fit(X, y)
     preds = model.predict(X)
 
     assert np.all(preds > 0)
-    assert np.allclose(model.coef_, coef, atol=0.12)
-    assert np.isclose(model.intercept_, intercept, atol=0.12)
+    assert model.score(X, y) < 0.0
+    assert model.optimizer_name_ == "FrankWolfe"
+    assert model.regularization_ == "l1"
+    assert np.linalg.norm(model.coef_, ord=1) <= 1.0 / model.alpha + 1e-6
 
 
 def test_regularization_shrinks_linear_coefficients():
@@ -82,14 +87,31 @@ def test_regularization_shrinks_linear_coefficients():
     ridge = pye.LinearRegression(alpha=1.0, l1_ratio=0.0)
     ridge.fit(X, y)
 
-    lasso_like = pye.LinearRegression(alpha=1.0, l1_ratio=1.0)
-    lasso_like.fit(X, y)
+    lasso = pye.LinearRegression(alpha=1.0, l1_ratio=1.0)
+    lasso.fit(X, y)
 
     assert np.linalg.norm(ridge.coef_) < np.linalg.norm(baseline.coef_)
-    assert np.linalg.norm(lasso_like.coef_, ord=1) < np.linalg.norm(
-        baseline.coef_, ord=1
-    )
+    assert np.linalg.norm(ridge.coef_) <= 1.0 / ridge.alpha + 1e-6
+    assert np.linalg.norm(lasso.coef_, ord=1) < np.linalg.norm(baseline.coef_, ord=1)
+    assert np.linalg.norm(lasso.coef_, ord=1) <= 1.0 / lasso.alpha + 1e-6
+    assert ridge.optimizer_name_ == "FrankWolfe"
+    assert lasso.optimizer_name_ == "FrankWolfe"
     assert ridge.coef_std_errors_ is None
+
+
+def test_mixed_elastic_net_ratio_is_rejected():
+    np.random.seed(42)
+    X = np.random.randn(200, 3)
+    y = X @ np.array([1.0, -0.5, 0.25]) + 0.1 * np.random.randn(200)
+
+    model = pye.LinearRegression(alpha=1.0, l1_ratio=0.5)
+
+    try:
+        model.fit(X, y)
+    except ValueError as exc:
+        assert "l1_ratio values of 0.0 (L2) or 1.0 (L1) only" in str(exc)
+    else:
+        raise AssertionError("expected mixed elastic-net ratio to raise ValueError")
 
 
 def test_ols_robust_covariance_matches_sandwich_formula():

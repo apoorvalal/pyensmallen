@@ -12,6 +12,7 @@ copy_notebooks() {
   cp "${ROOT_DIR}/notebooks/banana.ipynb" "${DOC_NOTEBOOK_DIR}/banana.ipynb"
   cp "${ROOT_DIR}/notebooks/gmm.ipynb" "${DOC_NOTEBOOK_DIR}/gmm.ipynb"
   cp "${ROOT_DIR}/notebooks/autodiff_mnl.ipynb" "${DOC_NOTEBOOK_DIR}/autodiff_mnl.ipynb"
+  cp "${ROOT_DIR}/notebooks/regularization_comparison.ipynb" "${DOC_NOTEBOOK_DIR}/regularization_comparison.ipynb"
 }
 
 trap copy_notebooks EXIT

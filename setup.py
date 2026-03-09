@@ -119,6 +119,7 @@ setup(
             "pandas",
             "pytest",
             "quartodoc",
+            "scikit-learn>=1.7.2",
             "seaborn",
             "statsmodels",
             "toolz",

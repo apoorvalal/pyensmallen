@@ -12,6 +12,7 @@ project:
     - notebooks/banana.ipynb
     - notebooks/gmm.ipynb
     - notebooks/autodiff_mnl.ipynb
+    - notebooks/regularization_comparison.ipynb
 
 metadata-files:
   - reference/_sidebar.yml
