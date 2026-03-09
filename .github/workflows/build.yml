@@ -73,7 +73,7 @@ jobs:
             export PKG_CONFIG_PATH="/Users/runner/micromamba/envs/pyensmallen/lib/pkgconfig:$PKG_CONFIG_PATH"
             export CMAKE_PREFIX_PATH="/Users/runner/micromamba/envs/pyensmallen"
             ls -la /Users/runner/micromamba/envs/pyensmallen/lib/pkgconfig || echo "pkgconfig dir not found"
-            python -m pip install -v build
+            python -m pip install -v build wheel
             python -c "import os; print('Environment:', os.environ)"
           CIBW_ENVIRONMENT_LINUX: >-
             MAMBA_ROOT_PREFIX="/host/home/runner/micromamba"
