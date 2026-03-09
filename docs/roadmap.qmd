@@ -1,6 +1,30 @@
+---
+title: Roadmap
+---
+
 # Econometrics and Supervised Learning Roadmap
 
 This document collects proposed functionality expansions for `pyensmallen`, based on the existing notebooks and current API surface.
+
+## Current Status
+
+Implemented on `master`:
+
+- Estimator classes for `LinearRegression`, `LogisticRegression`, and `PoissonRegression`
+- fitted attributes including `coef_`, `intercept_`, covariance estimates, confidence intervals, and `summary()`
+- classical and robust sandwich standard errors for unregularized OLS, logit, and Poisson
+- exact L1 and L2 regularization for the core estimator classes via backend solver switching
+- Quarto docs, generated API reference, benchmark page, and executed notebook pages
+- macOS wheel repair for vendored BLAS linkage and post-patch ad-hoc codesigning
+
+Still outstanding from the original roadmap:
+
+- true separable-objective and mini-batch training support
+- productized JAX objective bridge
+- richer inference utilities beyond the current robust covariance path
+- workflow-level evaluation and model-selection helpers
+- formula and DataFrame ergonomics
+- additional estimator classes beyond the current linear / logit / Poisson set
 
 ## First Tranche
 
@@ -10,11 +34,14 @@ The first set of items to prioritize:
 2. First-class regularization support
 3. Proper stochastic / mini-batch training support
 
-These are the highest-leverage additions for making `pyensmallen` useful beyond optimizer demos and low-level objective wrappers.
+The first two are now in place. The remaining item in this tranche is proper stochastic / mini-batch training support.
 
 ## Full Proposal List
 
 ### 1. Estimator classes for common supervised models
+
+Status:
+Partially complete. `LinearRegression`, `LogisticRegression`, and `PoissonRegression` now exist. Multinomial and other nonlinear estimators remain open.
 
 Add estimator APIs for standard econometrics and ML models:
 
@@ -41,6 +68,9 @@ The current API is objective-first. Real workflows usually want model objects, n
 
 ### 2. First-class regularization support
 
+Status:
+Partially complete. Exact L1 and L2 support is implemented for the core estimator classes. Mixed elastic net, regularization paths, and CV selection remain open.
+
 Add penalized estimation support across core models:
 
 - L1
@@ -55,6 +85,9 @@ Rationale:
 This is central to both supervised learning and modern econometrics, especially in high-dimensional settings.
 
 ### 3. Productized JAX bridge
+
+Status:
+Not started as library surface. The notebook pattern exists, but there is still no supported wrapper API.
 
 Turn the current notebook pattern into a supported API:
 
@@ -73,6 +106,9 @@ Rationale:
 The multinomial logit notebook already shows this is useful. It should be library functionality, not notebook glue code.
 
 ### 4. Proper stochastic / mini-batch training support
+
+Status:
+Not started. This remains the next major ML-side gap.
 
 Expose true separable-objective support for first-order optimizers:
 
@@ -94,6 +130,9 @@ The Adam-family bindings exist, but the current wrapper behaves like full-batch 
 
 ### 5. Inference utilities beyond point estimation
 
+Status:
+Partially complete. Classical and robust sandwich covariance are available for unregularized OLS, logit, and Poisson. Clustered, HAC, tests, marginal effects, and bootstrap helpers remain open.
+
 Expand the econometrics side with reusable inference tools:
 
 - sandwich covariance
@@ -109,6 +148,9 @@ Rationale:
 The package already goes in this direction for GMM. Extending it to MLE models would make it much more useful for empirical work.
 
 ### 6. Model selection and evaluation tools
+
+Status:
+Not started as library functionality.
 
 Add workflow-level evaluation and tuning utilities:
 
@@ -132,6 +174,9 @@ Several notebooks currently hand-roll comparison and tuning logic that should li
 
 ### 7. Higher-level causal and panel estimators
 
+Status:
+Still mostly out of scope for this repo; the sibling `synthlearners` repository remains the main home for panel estimators.
+
 Potential estimator layer additions include:
 
 - `SyntheticControl`
@@ -146,6 +191,9 @@ Rationale:
 This is a natural applied econometrics extension, though a substantial part of this already exists in the sibling `synthlearners` repository.
 
 ### 8. Formula and DataFrame ergonomics
+
+Status:
+Not started.
 
 Improve usability for empirical workflows:
 
@@ -177,4 +225,3 @@ Current working assumption:
 
 - `pyensmallen` should focus on optimization primitives, reusable objectives, supervised estimators, autodiff integration, and inference utilities.
 - `synthlearners` should remain the home for most panel and synthetic-control estimators, while depending on `pyensmallen` where useful.
-

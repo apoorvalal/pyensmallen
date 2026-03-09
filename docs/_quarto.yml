@@ -6,6 +6,7 @@ project:
     - benchmarks.qmd
     - optimizers.qmd
     - estimators.qmd
+    - roadmap.qmd
     - notebooks.qmd
     - reference/*.qmd
     - notebooks/example.ipynb
@@ -29,6 +30,8 @@ website:
         text: Benchmarks
       - href: estimators.qmd
         text: Estimators
+      - href: roadmap.qmd
+        text: Roadmap
       - href: reference/index.qmd
         text: API
       - href: notebooks.qmd
