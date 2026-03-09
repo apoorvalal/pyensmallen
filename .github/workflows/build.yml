@@ -60,6 +60,12 @@ jobs:
             -o ~/Library/Caches/cibuildwheel/virtualenv-20.26.2.pyz \
             https://github.com/pypa/get-virtualenv/raw/20.26.2/public/virtualenv.pyz
 
+      - name: Install macOS wheel repair tools
+        if: runner.os == 'macOS'
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install delocate wheel
+
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.19.0
         env:
@@ -77,6 +83,8 @@ jobs:
             PKG_CONFIG_PATH="/Users/runner/micromamba/envs/pyensmallen/lib/pkgconfig"
             CMAKE_PREFIX_PATH="/Users/runner/micromamba/envs/pyensmallen"
             VERBOSE=1
+          CIBW_REPAIR_WHEEL_COMMAND_MACOS: >-
+            python tools/repair_macos_wheel.py {wheel} {dest_dir} {delocate_archs}
           CIBW_BUILD: ${{ matrix.python[0] }}-${{ matrix.buildplat[1] }}
           CIBW_BUILD_VERBOSITY: 3
         continue-on-error: true # Let it complete even if there's an error
