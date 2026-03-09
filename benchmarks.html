@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>pyensmallen</title>
+<title>Benchmarks – pyensmallen</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -20,44 +20,10 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
-/* CSS for syntax highlighting */
-pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { line-height: 1.25; }
-pre > code.sourceCode > span:empty { height: 1.2em; }
-.sourceCode { overflow: visible; }
-code.sourceCode > span { color: inherit; text-decoration: inherit; }
-div.sourceCode { margin: 1em 0; }
-pre.sourceCode { margin: 0; }
-@media screen {
-div.sourceCode { overflow: auto; }
-}
-@media print {
-pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
-}
-pre.numberSource code
-  { counter-reset: source-line 0; }
-pre.numberSource code > span
-  { position: relative; left: -4em; counter-increment: source-line; }
-pre.numberSource code > span > a:first-child::before
-  { content: counter(source-line);
-    position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; display: inline-block;
-    -webkit-touch-callout: none; -webkit-user-select: none;
-    -khtml-user-select: none; -moz-user-select: none;
-    -ms-user-select: none; user-select: none;
-    padding: 0 4px; width: 4em;
-  }
-pre.numberSource { margin-left: 3em;  padding-left: 4px; }
-div.sourceCode
-  {   }
-@media screen {
-pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
-}
 </style>
 
 
-<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script><script src="site_libs/quarto-nav/quarto-nav.js"></script>
 <script src="site_libs/quarto-nav/headroom.min.js"></script>
 <script src="site_libs/clipboard/clipboard.min.js"></script>
 <script src="site_libs/quarto-search/autocomplete.umd.js"></script>
@@ -100,6 +66,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     "search-label": "Search"
   }
 }</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
 
 
 <link rel="stylesheet" href="styles.css">
@@ -124,7 +93,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll me-auto">
   <li class="nav-item">
-    <a class="nav-link active" href="./index.html" aria-current="page"> 
+    <a class="nav-link" href="./index.html"> 
 <span class="menu-text">Home</span></a>
   </li>  
   <li class="nav-item">
@@ -132,7 +101,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span class="menu-text">Optimizers</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link" href="./benchmarks.html"> 
+    <a class="nav-link active" href="./benchmarks.html" aria-current="page"> 
 <span class="menu-text">Benchmarks</span></a>
   </li>  
   <li class="nav-item">
@@ -163,63 +132,613 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#pyensmallen" id="toc-pyensmallen" class="nav-link active" data-scroll-target="#pyensmallen">pyensmallen</a>
-  <ul class="collapse">
-  <li><a href="#install" id="toc-install" class="nav-link" data-scroll-target="#install">Install</a></li>
-  <li><a href="#what-is-included" id="toc-what-is-included" class="nav-link" data-scroll-target="#what-is-included">What is included</a></li>
-  <li><a href="#documentation-map" id="toc-documentation-map" class="nav-link" data-scroll-target="#documentation-map">Documentation map</a></li>
-  <li><a href="#notes" id="toc-notes" class="nav-link" data-scroll-target="#notes">Notes</a></li>
-  </ul></li>
+  <li><a href="#headline-results" id="toc-headline-results" class="nav-link active" data-scroll-target="#headline-results">Headline results</a></li>
+  <li><a href="#runtime-scaling" id="toc-runtime-scaling" class="nav-link" data-scroll-target="#runtime-scaling">Runtime scaling</a></li>
+  <li><a href="#convergence-behavior" id="toc-convergence-behavior" class="nav-link" data-scroll-target="#convergence-behavior">Convergence behavior</a></li>
+  <li><a href="#full-benchmark-grid" id="toc-full-benchmark-grid" class="nav-link" data-scroll-target="#full-benchmark-grid">Full benchmark grid</a></li>
+  <li><a href="#fastest-method-by-configuration" id="toc-fastest-method-by-configuration" class="nav-link" data-scroll-target="#fastest-method-by-configuration">Fastest method by configuration</a></li>
+  <li><a href="#why-this-matters" id="toc-why-this-matters" class="nav-link" data-scroll-target="#why-this-matters">Why this matters</a></li>
   </ul>
 </nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Benchmarks</h1>
+</div>
 
 
 
-<section id="pyensmallen" class="level1">
-<h1>pyensmallen</h1>
-<p><code>pyensmallen</code> provides Python bindings for the <code>ensmallen</code> optimization library, with a focus on econometrics and supervised learning workflows.</p>
-<section id="install" class="level2">
-<h2 class="anchored" data-anchor-id="install">Install</h2>
-<p>Base install:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> pip install pyensmallen</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>Development install with all test and notebook dependencies:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> pip install <span class="at">--python</span> .venv/bin/python <span class="st">".[full]"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>Editable install in this repository:</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> pip install <span class="at">--python</span> .venv/bin/python meson meson-python ninja pybind11</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> pip install <span class="at">--python</span> .venv/bin/python <span class="at">--no-build-isolation</span> <span class="at">-e</span> <span class="st">".[full]"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p><code>pyensmallen</code> is built for the regime where mainstream Python estimation stacks start to drag: large samples, repeated model fits, and inference workflows that require resampling or repeated solves.</p>
+<p>Across linear, logistic, and Poisson regression, the basic pattern is consistent: as the problem gets larger, <code>pyensmallen</code> tends to pull away from SciPy and statsmodels rather than merely keeping pace.</p>
+<section id="headline-results" class="level2">
+<h2 class="anchored" data-anchor-id="headline-results">Headline results</h2>
+<p>At 10 million observations and 20 features:</p>
+<div id="87419e29" class="cell" data-execution_count="2">
+<div class="cell-output cell-output-display" data-execution_count="2">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th">Library</th>
+<th data-quarto-table-cell-role="th">Model</th>
+<th data-quarto-table-cell-role="th">Samples</th>
+<th data-quarto-table-cell-role="th">Features</th>
+<th data-quarto-table-cell-role="th">vs SciPy</th>
+<th data-quarto-table-cell-role="th">vs statsmodels</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">9</td>
+<td>Linear</td>
+<td>10,000,000</td>
+<td>20</td>
+<td>11.53</td>
+<td>3.74</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">19</td>
+<td>Logistic</td>
+<td>10,000,000</td>
+<td>20</td>
+<td>14.60</td>
+<td>4.55</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">29</td>
+<td>Poisson</td>
+<td>10,000,000</td>
+<td>20</td>
+<td>13.39</td>
+<td>30.54</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>That is the practical story. The time saved on point estimation can be spent on bootstrap inference, specification search, cross-validation, and sensitivity analysis.</p>
 </section>
-<section id="what-is-included" class="level2">
-<h2 class="anchored" data-anchor-id="what-is-included">What is included</h2>
+<section id="runtime-scaling" class="level2">
+<h2 class="anchored" data-anchor-id="runtime-scaling">Runtime scaling</h2>
+<p><img src="assets/benchmark_time.png" class="img-fluid"></p>
+<p>Benchmarks span sample sizes from 1,000 to 10,000,000 observations and both low- and moderate-dimensional settings. The slope separation matters more than any single point estimate: the larger the problem, the larger the payoff from using a faster optimizer stack.</p>
+</section>
+<section id="convergence-behavior" class="level2">
+<h2 class="anchored" data-anchor-id="convergence-behavior">Convergence behavior</h2>
+<p><img src="assets/benchmark_conv.png" class="img-fluid"></p>
+<p>Speed only matters if the optimizer still lands on the same solution. The convergence comparisons show that the runtime gains are not coming from a loose stopping rule or low-quality fit.</p>
+</section>
+<section id="full-benchmark-grid" class="level2">
+<h2 class="anchored" data-anchor-id="full-benchmark-grid">Full benchmark grid</h2>
+<p>The full grid below reports multiplicative speedups relative to SciPy and statsmodels across all benchmark configurations.</p>
+<div id="6df0d8fb" class="cell" data-execution_count="3">
+<div class="cell-output cell-output-display" data-execution_count="3">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th">Library</th>
+<th data-quarto-table-cell-role="th">Model</th>
+<th data-quarto-table-cell-role="th">n_samples</th>
+<th data-quarto-table-cell-role="th">n_features</th>
+<th data-quarto-table-cell-role="th">scipy_speedup</th>
+<th data-quarto-table-cell-role="th">statsmodels_speedup</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>Linear</td>
+<td>1000</td>
+<td>5</td>
+<td>5.08</td>
+<td>2.07</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1</td>
+<td>Linear</td>
+<td>1000</td>
+<td>20</td>
+<td>12.02</td>
+<td>6.72</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2</td>
+<td>Linear</td>
+<td>10000</td>
+<td>5</td>
+<td>3.08</td>
+<td>2.22</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">3</td>
+<td>Linear</td>
+<td>10000</td>
+<td>20</td>
+<td>5.36</td>
+<td>3.64</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">4</td>
+<td>Linear</td>
+<td>100000</td>
+<td>5</td>
+<td>2.29</td>
+<td>2.87</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">5</td>
+<td>Linear</td>
+<td>100000</td>
+<td>20</td>
+<td>8.93</td>
+<td>4.07</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">6</td>
+<td>Linear</td>
+<td>1000000</td>
+<td>5</td>
+<td>4.70</td>
+<td>2.68</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">7</td>
+<td>Linear</td>
+<td>1000000</td>
+<td>20</td>
+<td>18.02</td>
+<td>5.63</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">8</td>
+<td>Linear</td>
+<td>10000000</td>
+<td>5</td>
+<td>5.57</td>
+<td>3.05</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">9</td>
+<td>Linear</td>
+<td>10000000</td>
+<td>20</td>
+<td>11.53</td>
+<td>3.74</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">10</td>
+<td>Logistic</td>
+<td>1000</td>
+<td>5</td>
+<td>3.42</td>
+<td>2.45</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">11</td>
+<td>Logistic</td>
+<td>1000</td>
+<td>20</td>
+<td>9.53</td>
+<td>4.90</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">12</td>
+<td>Logistic</td>
+<td>10000</td>
+<td>5</td>
+<td>4.13</td>
+<td>2.14</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">13</td>
+<td>Logistic</td>
+<td>10000</td>
+<td>20</td>
+<td>6.37</td>
+<td>2.90</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">14</td>
+<td>Logistic</td>
+<td>100000</td>
+<td>5</td>
+<td>1.26</td>
+<td>0.76</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">15</td>
+<td>Logistic</td>
+<td>100000</td>
+<td>20</td>
+<td>8.57</td>
+<td>5.43</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">16</td>
+<td>Logistic</td>
+<td>1000000</td>
+<td>5</td>
+<td>4.10</td>
+<td>2.41</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">17</td>
+<td>Logistic</td>
+<td>1000000</td>
+<td>20</td>
+<td>8.82</td>
+<td>3.43</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">18</td>
+<td>Logistic</td>
+<td>10000000</td>
+<td>5</td>
+<td>11.22</td>
+<td>2.21</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">19</td>
+<td>Logistic</td>
+<td>10000000</td>
+<td>20</td>
+<td>14.60</td>
+<td>4.55</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">20</td>
+<td>Poisson</td>
+<td>1000</td>
+<td>5</td>
+<td>4.70</td>
+<td>3.96</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">21</td>
+<td>Poisson</td>
+<td>1000</td>
+<td>20</td>
+<td>5.10</td>
+<td>NaN</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">22</td>
+<td>Poisson</td>
+<td>10000</td>
+<td>5</td>
+<td>3.59</td>
+<td>4.20</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">23</td>
+<td>Poisson</td>
+<td>10000</td>
+<td>20</td>
+<td>3.60</td>
+<td>2.09</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">24</td>
+<td>Poisson</td>
+<td>100000</td>
+<td>5</td>
+<td>0.76</td>
+<td>0.97</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">25</td>
+<td>Poisson</td>
+<td>100000</td>
+<td>20</td>
+<td>8.25</td>
+<td>39.57</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">26</td>
+<td>Poisson</td>
+<td>1000000</td>
+<td>5</td>
+<td>0.66</td>
+<td>0.92</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">27</td>
+<td>Poisson</td>
+<td>1000000</td>
+<td>20</td>
+<td>4.60</td>
+<td>NaN</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">28</td>
+<td>Poisson</td>
+<td>10000000</td>
+<td>5</td>
+<td>0.35</td>
+<td>0.50</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">29</td>
+<td>Poisson</td>
+<td>10000000</td>
+<td>20</td>
+<td>13.39</td>
+<td>30.54</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+</section>
+<section id="fastest-method-by-configuration" class="level2">
+<h2 class="anchored" data-anchor-id="fastest-method-by-configuration">Fastest method by configuration</h2>
+<div id="4ea1d259" class="cell" data-execution_count="4">
+<div class="cell-output cell-output-display" data-execution_count="4">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">Model</th>
+<th data-quarto-table-cell-role="th">n_samples</th>
+<th data-quarto-table-cell-role="th">n_features</th>
+<th data-quarto-table-cell-role="th">Library</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>Linear</td>
+<td>1000</td>
+<td>5</td>
+<td>pyensmallen</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1</td>
+<td>Linear</td>
+<td>1000</td>
+<td>20</td>
+<td>pyensmallen</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2</td>
+<td>Linear</td>
+<td>10000</td>
+<td>5</td>
+<td>pyensmallen</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">3</td>
+<td>Linear</td>
+<td>10000</td>
+<td>20</td>
+<td>pyensmallen</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">4</td>
+<td>Linear</td>
+<td>100000</td>
+<td>5</td>
+<td>pyensmallen</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">5</td>
+<td>Linear</td>
+<td>100000</td>
+<td>20</td>
+<td>pyensmallen</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">6</td>
+<td>Linear</td>
+<td>1000000</td>
+<td>5</td>
+<td>pyensmallen</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">7</td>
+<td>Linear</td>
+<td>1000000</td>
+<td>20</td>
+<td>pyensmallen</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">8</td>
+<td>Linear</td>
+<td>10000000</td>
+<td>5</td>
+<td>pyensmallen</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">9</td>
+<td>Linear</td>
+<td>10000000</td>
+<td>20</td>
+<td>pyensmallen</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">10</td>
+<td>Logistic</td>
+<td>1000</td>
+<td>5</td>
+<td>pyensmallen</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">11</td>
+<td>Logistic</td>
+<td>1000</td>
+<td>20</td>
+<td>pyensmallen</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">12</td>
+<td>Logistic</td>
+<td>10000</td>
+<td>5</td>
+<td>pyensmallen</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">13</td>
+<td>Logistic</td>
+<td>10000</td>
+<td>20</td>
+<td>pyensmallen</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">14</td>
+<td>Logistic</td>
+<td>100000</td>
+<td>5</td>
+<td>statsmodels</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">15</td>
+<td>Logistic</td>
+<td>100000</td>
+<td>20</td>
+<td>pyensmallen</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">16</td>
+<td>Logistic</td>
+<td>1000000</td>
+<td>5</td>
+<td>pyensmallen</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">17</td>
+<td>Logistic</td>
+<td>1000000</td>
+<td>20</td>
+<td>pyensmallen</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">18</td>
+<td>Logistic</td>
+<td>10000000</td>
+<td>5</td>
+<td>pyensmallen</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">19</td>
+<td>Logistic</td>
+<td>10000000</td>
+<td>20</td>
+<td>pyensmallen</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">20</td>
+<td>Poisson</td>
+<td>1000</td>
+<td>5</td>
+<td>pyensmallen</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">21</td>
+<td>Poisson</td>
+<td>1000</td>
+<td>20</td>
+<td>pyensmallen</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">22</td>
+<td>Poisson</td>
+<td>10000</td>
+<td>5</td>
+<td>pyensmallen</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">23</td>
+<td>Poisson</td>
+<td>10000</td>
+<td>20</td>
+<td>pyensmallen</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">24</td>
+<td>Poisson</td>
+<td>100000</td>
+<td>5</td>
+<td>scipy</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">25</td>
+<td>Poisson</td>
+<td>100000</td>
+<td>20</td>
+<td>pyensmallen</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">26</td>
+<td>Poisson</td>
+<td>1000000</td>
+<td>5</td>
+<td>scipy</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">27</td>
+<td>Poisson</td>
+<td>1000000</td>
+<td>20</td>
+<td>pyensmallen</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">28</td>
+<td>Poisson</td>
+<td>10000000</td>
+<td>5</td>
+<td>scipy</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">29</td>
+<td>Poisson</td>
+<td>10000000</td>
+<td>20</td>
+<td>pyensmallen</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+</section>
+<section id="why-this-matters" class="level2">
+<h2 class="anchored" data-anchor-id="why-this-matters">Why this matters</h2>
 <ul>
-<li>Optimizers: <code>L_BFGS</code>, <code>FrankWolfe</code>, <code>SimplexFrankWolfe</code>, and Adam variants</li>
-<li>Objective helpers: linear, logistic, and Poisson losses</li>
-<li>Estimator classes: <code>LinearRegression</code>, <code>LogisticRegression</code>, <code>PoissonRegression</code></li>
-<li>Inference: classical and robust sandwich standard errors for unregularized OLS and QMLE-style logit and Poisson</li>
-<li>GMM support with JAX autodiff</li>
-</ul>
-</section>
-<section id="documentation-map" class="level2">
-<h2 class="anchored" data-anchor-id="documentation-map">Documentation map</h2>
-<ul>
-<li><a href="./optimizers.html">Optimizers</a>: low-level optimizer classes and when to use them</li>
-<li><a href="./benchmarks.html">Benchmarks</a>: runtime and convergence comparisons against SciPy and statsmodels</li>
-<li><a href="./estimators.html">Estimators</a>: supervised estimators, fitted attributes, and inference</li>
-<li><a href="./notebooks.html">Notebooks</a>: examples and benchmark notebooks in this repository</li>
-</ul>
-</section>
-<section id="notes" class="level2">
-<h2 class="anchored" data-anchor-id="notes">Notes</h2>
-<ul>
-<li>The <code>full</code> extra installs Python packages required to run tests and notebooks.</li>
-<li>Quarto itself is an external CLI. Render this site with <code>scripts/render_docs.sh</code>.</li>
+<li>Linear regression is especially notable because <code>statsmodels</code> uses a closed-form estimator, yet <code>pyensmallen</code> remains highly competitive and often faster at scale.</li>
+<li>Logistic regression shows the cleanest large-sample advantage relative to SciPy and statsmodels.</li>
+<li>Poisson regression has the most uneven competitor behavior, which makes <code>pyensmallen</code>’s combination of speed and stable optimization especially useful.</li>
+<li>In practical terms, these runtimes make bootstrap-based inference much more realistic on large datasets.</li>
 </ul>
 
 
-</section>
 </section>
 
 </main> <!-- /main -->

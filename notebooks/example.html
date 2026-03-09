@@ -103,6 +103,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 <link rel="stylesheet" href="../styles.css">
+<link rel="stylesheet" href="../reference/_styles-quartodoc.css">
 </head>
 
 <body class="nav-fixed">
@@ -131,8 +132,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span class="menu-text">Optimizers</span></a>
   </li>  
   <li class="nav-item">
+    <a class="nav-link" href="../benchmarks.html"> 
+<span class="menu-text">Benchmarks</span></a>
+  </li>  
+  <li class="nav-item">
     <a class="nav-link" href="../estimators.html"> 
 <span class="menu-text">Estimators</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../reference/index.html"> 
+<span class="menu-text">API</span></a>
   </li>  
   <li class="nav-item">
     <a class="nav-link" href="../notebooks.html"> 
@@ -222,8 +231,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>result_linear_ens</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>CPU times: user 5.83 s, sys: 168 ms, total: 6 s
-Wall time: 401 ms</code></pre>
+<pre><code>CPU times: user 5.76 s, sys: 188 ms, total: 5.95 s
+Wall time: 378 ms</code></pre>
 </div>
 <div class="cell-output cell-output-display" data-execution_count="3">
 <pre><code>array([0.51639859, 0.94598022, 0.23380001, 0.55162275, 0.97811966,
@@ -272,8 +281,8 @@ Wall time: 401 ms</code></pre>
 <span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>result_logistic_ens</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>CPU times: user 143 ms, sys: 0 ns, total: 143 ms
-Wall time: 9.02 ms</code></pre>
+<pre><code>CPU times: user 139 ms, sys: 1.94 ms, total: 141 ms
+Wall time: 8.74 ms</code></pre>
 </div>
 <div class="cell-output cell-output-display" data-execution_count="6">
 <pre><code>array([0.91787916, 0.78073762, 0.60735961, 0.36399418, 0.72193698,
@@ -308,8 +317,8 @@ Wall time: 9.02 ms</code></pre>
 <span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>result_poisson_ens</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>CPU times: user 491 ms, sys: 1.01 ms, total: 492 ms
-Wall time: 30.3 ms</code></pre>
+<pre><code>CPU times: user 482 ms, sys: 968 μs, total: 483 ms
+Wall time: 30.4 ms</code></pre>
 </div>
 <div class="cell-output cell-output-display" data-execution_count="8">
 <pre><code>array([0.46785229, 0.27548319, 0.15101541, 0.03977385, 0.46631077,

@@ -103,6 +103,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 <link rel="stylesheet" href="../styles.css">
+<link rel="stylesheet" href="../reference/_styles-quartodoc.css">
 </head>
 
 <body class="nav-fixed">
@@ -131,8 +132,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span class="menu-text">Optimizers</span></a>
   </li>  
   <li class="nav-item">
+    <a class="nav-link" href="../benchmarks.html"> 
+<span class="menu-text">Benchmarks</span></a>
+  </li>  
+  <li class="nav-item">
     <a class="nav-link" href="../estimators.html"> 
 <span class="menu-text">Estimators</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../reference/index.html"> 
+<span class="menu-text">API</span></a>
   </li>  
   <li class="nav-item">
     <a class="nav-link" href="../notebooks.html"> 
@@ -343,8 +352,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">Pyensmallen Mean Absolute Error:"</span>, mae_ens)</span>
 <span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"JAX Mean Absolute Error:"</span>, mae_jax)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Pyensmallen optimization time: 0.856609582901001
-JAX optimization time: 1.2342848777770996
+<pre><code>Pyensmallen optimization time: 0.8505103588104248
+JAX optimization time: 1.1517069339752197
 
 Pyensmallen Mean Absolute Error: 0.026351136330546497
 JAX Mean Absolute Error: 0.02586046071016848</code></pre>

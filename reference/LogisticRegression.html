@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>estimators – pyensmallen</title>
+<title>logisticregression – pyensmallen</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -57,22 +57,22 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </style>
 
 
-<script src="site_libs/quarto-nav/quarto-nav.js"></script>
-<script src="site_libs/quarto-nav/headroom.min.js"></script>
-<script src="site_libs/clipboard/clipboard.min.js"></script>
-<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
-<script src="site_libs/quarto-search/fuse.min.js"></script>
-<script src="site_libs/quarto-search/quarto-search.js"></script>
-<meta name="quarto:offset" content="./">
-<script src="site_libs/quarto-html/quarto.js"></script>
-<script src="site_libs/quarto-html/popper.min.js"></script>
-<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
-<script src="site_libs/quarto-html/anchor.min.js"></script>
-<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
-<script src="site_libs/bootstrap/bootstrap.min.js"></script>
-<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<script src="../site_libs/quarto-html/quarto.js"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -102,18 +102,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 }</script>
 
 
-<link rel="stylesheet" href="styles.css">
-<link rel="stylesheet" href="reference/_styles-quartodoc.css">
+<link rel="stylesheet" href="../styles.css">
+<link rel="stylesheet" href="../reference/_styles-quartodoc.css">
 </head>
 
-<body class="nav-fixed">
+<body class="nav-sidebar floating nav-fixed">
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top">
     <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
-    <a class="navbar-brand" href="./index.html">
+    <a class="navbar-brand" href="../index.html">
     <span class="navbar-title">pyensmallen</span>
     </a>
   </div>
@@ -124,27 +124,27 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll me-auto">
   <li class="nav-item">
-    <a class="nav-link" href="./index.html"> 
+    <a class="nav-link" href="../index.html"> 
 <span class="menu-text">Home</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link" href="./optimizers.html"> 
+    <a class="nav-link" href="../optimizers.html"> 
 <span class="menu-text">Optimizers</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link" href="./benchmarks.html"> 
+    <a class="nav-link" href="../benchmarks.html"> 
 <span class="menu-text">Benchmarks</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link active" href="./estimators.html" aria-current="page"> 
+    <a class="nav-link" href="../estimators.html"> 
 <span class="menu-text">Estimators</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link" href="./reference/index.html"> 
+    <a class="nav-link active" href="../reference/index.html" aria-current="page"> 
 <span class="menu-text">API</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link" href="./notebooks.html"> 
+    <a class="nav-link" href="../notebooks.html"> 
 <span class="menu-text">Notebooks</span></a>
   </li>  
 </ul>
@@ -153,23 +153,174 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
       </div> <!-- /container-fluid -->
     </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../reference/LinearRegression.html">Estimators</a></li><li class="breadcrumb-item"><a href="../reference/LogisticRegression.html">LogisticRegression</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
 </header>
 <!-- content -->
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../reference/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">API Reference</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Estimators</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../reference/LinearRegression.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">LinearRegression</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../reference/LogisticRegression.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">LogisticRegression</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../reference/PoissonRegression.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">PoissonRegression</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">Optimizers</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../reference/L_BFGS.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">L_BFGS</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../reference/FrankWolfe.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">FrankWolfe</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../reference/SimplexFrankWolfe.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">SimplexFrankWolfe</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../reference/Adam.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Adam</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../reference/AdaMax.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">AdaMax</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../reference/AMSGrad.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">AMSGrad</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../reference/OptimisticAdam.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">OptimisticAdam</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../reference/Nadam.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Nadam</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true">
+ <span class="menu-text">Objectives and GMM</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../reference/linear_obj.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">linear_obj</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../reference/logistic_obj.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">logistic_obj</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../reference/poisson_obj.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">poisson_obj</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../reference/EnsmallenEstimator.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">EnsmallenEstimator</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
         <nav id="TOC" role="doc-toc" class="toc-active">
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#estimators" id="toc-estimators" class="nav-link active" data-scroll-target="#estimators">Estimators</a>
+  <li><a href="#pyensmallen.LogisticRegression" id="toc-pyensmallen.LogisticRegression" class="nav-link active" data-scroll-target="#pyensmallen.LogisticRegression">LogisticRegression</a>
   <ul class="collapse">
-  <li><a href="#basic-usage" id="toc-basic-usage" class="nav-link" data-scroll-target="#basic-usage">Basic usage</a></li>
-  <li><a href="#fitted-attributes" id="toc-fitted-attributes" class="nav-link" data-scroll-target="#fitted-attributes">Fitted attributes</a></li>
-  <li><a href="#inference-helpers" id="toc-inference-helpers" class="nav-link" data-scroll-target="#inference-helpers">Inference helpers</a></li>
-  <li><a href="#regularization" id="toc-regularization" class="nav-link" data-scroll-target="#regularization">Regularization</a></li>
-  <li><a href="#covariance-types" id="toc-covariance-types" class="nav-link" data-scroll-target="#covariance-types">Covariance types</a></li>
+  <li><a href="#attributes" id="toc-attributes" class="nav-link" data-scroll-target="#attributes">Attributes</a></li>
+  <li><a href="#methods" id="toc-methods" class="nav-link" data-scroll-target="#methods">Methods</a>
+  <ul class="collapse">
+  <li><a href="#pyensmallen.LogisticRegression.confidence_intervals" id="toc-pyensmallen.LogisticRegression.confidence_intervals" class="nav-link" data-scroll-target="#pyensmallen.LogisticRegression.confidence_intervals">confidence_intervals</a></li>
+  <li><a href="#pyensmallen.LogisticRegression.fit" id="toc-pyensmallen.LogisticRegression.fit" class="nav-link" data-scroll-target="#pyensmallen.LogisticRegression.fit">fit</a></li>
+  <li><a href="#pyensmallen.LogisticRegression.predict" id="toc-pyensmallen.LogisticRegression.predict" class="nav-link" data-scroll-target="#pyensmallen.LogisticRegression.predict">predict</a></li>
+  <li><a href="#pyensmallen.LogisticRegression.predict_proba" id="toc-pyensmallen.LogisticRegression.predict_proba" class="nav-link" data-scroll-target="#pyensmallen.LogisticRegression.predict_proba">predict_proba</a></li>
+  <li><a href="#pyensmallen.LogisticRegression.score" id="toc-pyensmallen.LogisticRegression.score" class="nav-link" data-scroll-target="#pyensmallen.LogisticRegression.score">score</a></li>
+  <li><a href="#pyensmallen.LogisticRegression.summary" id="toc-pyensmallen.LogisticRegression.summary" class="nav-link" data-scroll-target="#pyensmallen.LogisticRegression.summary">summary</a></li>
+  </ul></li>
   </ul></li>
   </ul>
 </nav>
@@ -180,77 +331,233 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 
-<section id="estimators" class="level1">
-<h1>Estimators</h1>
-<p><code>pyensmallen</code> now exposes estimator classes for common supervised learning and econometrics workflows:</p>
-<ul>
-<li><code>LinearRegression</code></li>
-<li><code>LogisticRegression</code></li>
-<li><code>PoissonRegression</code></li>
-</ul>
-<section id="basic-usage" class="level2">
-<h2 class="anchored" data-anchor-id="basic-usage">Basic usage</h2>
-<div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pyensmallen <span class="im">as</span> pye</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>model <span class="op">=</span> pye.LogisticRegression(fit_intercept<span class="op">=</span><span class="va">True</span>)</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>model.fit(X, y)</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>coef <span class="op">=</span> model.coef_</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>intercept <span class="op">=</span> model.intercept_</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>probs <span class="op">=</span> model.predict_proba(X)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<section id="pyensmallen.LogisticRegression" class="level1">
+<h1>LogisticRegression</h1>
+<div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>LogisticRegression(</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    alpha<span class="op">=</span><span class="fl">0.0</span>,</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    l1_ratio<span class="op">=</span><span class="fl">0.0</span>,</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    fit_intercept<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    max_iterations<span class="op">=</span><span class="dv">1000</span>,</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    tolerance<span class="op">=</span><span class="fl">1e-08</span>,</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    l1_smoothing<span class="op">=</span><span class="fl">1e-06</span>,</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Binary logistic regression estimated by maximum likelihood.</p>
+<p>The model minimizes the negative Bernoulli log-likelihood. For regularized fits, the optimizer switches to Frank-Wolfe over an exact L1 or L2 ball. For unregularized fits, the class exposes classical inverse-information covariance estimates and robust QMLE sandwich covariance estimates.</p>
+<section id="attributes" class="level2 doc-section doc-section-attributes">
+<h2 class="doc-section doc-section-attributes anchored" data-anchor-id="attributes">Attributes</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 16%">
+<col style="width: 26%">
+<col style="width: 56%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>coef_</td>
+<td>ndarray of shape (n_features,)</td>
+<td>Estimated slope coefficients.</td>
+</tr>
+<tr class="even">
+<td>intercept_</td>
+<td>float</td>
+<td>Estimated intercept. Equals <code>0.0</code> when <code>fit_intercept=False</code>.</td>
+</tr>
+<tr class="odd">
+<td>params_</td>
+<td>ndarray of shape (n_params,)</td>
+<td>Full parameter vector, including the intercept when present.</td>
+</tr>
+<tr class="even">
+<td>std_errors_</td>
+<td>ndarray or None</td>
+<td>Classical standard errors for <code>params_</code>.</td>
+</tr>
+<tr class="odd">
+<td>robust_std_errors_</td>
+<td>ndarray or None</td>
+<td>Robust QMLE standard errors for <code>params_</code>.</td>
+</tr>
+</tbody>
+</table>
 </section>
-<section id="fitted-attributes" class="level2">
-<h2 class="anchored" data-anchor-id="fitted-attributes">Fitted attributes</h2>
-<p>After calling <code>fit</code>, each estimator exposes:</p>
-<ul>
-<li><code>params_</code></li>
-<li><code>coef_</code></li>
-<li><code>intercept_</code></li>
-<li><code>objective_value_</code></li>
-</ul>
-<p>For unregularized fits, the inference layer also exposes:</p>
-<ul>
-<li><code>covariance_</code></li>
-<li><code>std_errors_</code></li>
-<li><code>coef_std_errors_</code></li>
-<li><code>intercept_std_error_</code></li>
-<li><code>robust_covariance_</code></li>
-<li><code>robust_std_errors_</code></li>
-<li><code>robust_coef_std_errors_</code></li>
-<li><code>robust_intercept_std_error_</code></li>
-</ul>
+<section id="methods" class="level2">
+<h2 class="anchored" data-anchor-id="methods">Methods</h2>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><a href="#pyensmallen.LogisticRegression.confidence_intervals">confidence_intervals</a></td>
+<td>Return coefficient confidence intervals.</td>
+</tr>
+<tr class="even">
+<td><a href="#pyensmallen.LogisticRegression.fit">fit</a></td>
+<td>Fit the logistic regression model.</td>
+</tr>
+<tr class="odd">
+<td><a href="#pyensmallen.LogisticRegression.predict">predict</a></td>
+<td>Predict binary class labels using a 0.5 threshold.</td>
+</tr>
+<tr class="even">
+<td><a href="#pyensmallen.LogisticRegression.predict_proba">predict_proba</a></td>
+<td>Return class probabilities for the binary response.</td>
+</tr>
+<tr class="odd">
+<td><a href="#pyensmallen.LogisticRegression.score">score</a></td>
+<td>Return mean classification accuracy on the provided sample.</td>
+</tr>
+<tr class="even">
+<td><a href="#pyensmallen.LogisticRegression.summary">summary</a></td>
+<td>Return <code>[coef, se, ci_lb, ci_ub]</code> for each fitted parameter.</td>
+</tr>
+</tbody>
+</table>
+<section id="pyensmallen.LogisticRegression.confidence_intervals" class="level3">
+<h3 class="anchored" data-anchor-id="pyensmallen.LogisticRegression.confidence_intervals">confidence_intervals</h3>
+<div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>LogisticRegression.confidence_intervals(alpha<span class="op">=</span><span class="fl">0.05</span>, covariance_type<span class="op">=</span><span class="st">'nonrobust'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Return coefficient confidence intervals.</p>
 </section>
-<section id="inference-helpers" class="level2">
-<h2 class="anchored" data-anchor-id="inference-helpers">Inference helpers</h2>
-<p>Confidence intervals:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>model.confidence_intervals()</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>model.confidence_intervals(covariance_type<span class="op">=</span><span class="st">"robust"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>Compact summary output:</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>summary <span class="op">=</span> model.summary()</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>robust_summary <span class="op">=</span> model.summary(covariance_type<span class="op">=</span><span class="st">"robust"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p><code>summary()</code> returns a numeric array with columns:</p>
-<pre class="text"><code>[coef, se, ci_lb, ci_ub]</code></pre>
+<section id="pyensmallen.LogisticRegression.fit" class="level3">
+<h3 class="anchored" data-anchor-id="pyensmallen.LogisticRegression.fit">fit</h3>
+<div class="sourceCode" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>LogisticRegression.fit(X, y)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Fit the logistic regression model.</p>
+<section id="parameters" class="level4 doc-section doc-section-parameters">
+<h4 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters">Parameters</h4>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 7%">
+<col style="width: 39%">
+<col style="width: 41%">
+<col style="width: 11%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>X</td>
+<td>ndarray of shape (n_samples, n_features)</td>
+<td>Feature matrix.</td>
+<td><em>required</em></td>
+</tr>
+<tr class="even">
+<td>y</td>
+<td>ndarray of shape (n_samples,)</td>
+<td>Binary response encoded as <code>0</code> or <code>1</code>.</td>
+<td><em>required</em></td>
+</tr>
+</tbody>
+</table>
 </section>
-<section id="regularization" class="level2">
-<h2 class="anchored" data-anchor-id="regularization">Regularization</h2>
-<p>All three estimators currently accept:</p>
-<ul>
-<li><code>alpha</code></li>
-<li><code>l1_ratio</code></li>
-</ul>
-<p>The intended use right now is ridge-like penalization. The L1 path is implemented with a smooth approximation to stay compatible with the current L-BFGS backend.</p>
-<p>Inference is only exposed for unregularized fits (<code>alpha == 0</code>).</p>
+<section id="returns" class="level4 doc-section doc-section-returns">
+<h4 class="doc-section doc-section-returns anchored" data-anchor-id="returns">Returns</h4>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td></td>
+<td>LogisticRegression</td>
+<td>The fitted estimator.</td>
+</tr>
+</tbody>
+</table>
 </section>
-<section id="covariance-types" class="level2">
-<h2 class="anchored" data-anchor-id="covariance-types">Covariance types</h2>
-<p>Supported inference modes:</p>
-<ul>
-<li><code>covariance_type="nonrobust"</code>: model-based covariance</li>
-<li><code>covariance_type="robust"</code>: sandwich covariance</li>
-</ul>
-<p>For OLS, the robust path uses the score-based sandwich form. For logit and Poisson, the robust path uses QMLE-style sandwich inference.</p>
+</section>
+<section id="pyensmallen.LogisticRegression.predict" class="level3">
+<h3 class="anchored" data-anchor-id="pyensmallen.LogisticRegression.predict">predict</h3>
+<div class="sourceCode" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>LogisticRegression.predict(X)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Predict binary class labels using a 0.5 threshold.</p>
+</section>
+<section id="pyensmallen.LogisticRegression.predict_proba" class="level3">
+<h3 class="anchored" data-anchor-id="pyensmallen.LogisticRegression.predict_proba">predict_proba</h3>
+<div class="sourceCode" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>LogisticRegression.predict_proba(X)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Return class probabilities for the binary response.</p>
+<section id="parameters-1" class="level4 doc-section doc-section-parameters">
+<h4 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters-1">Parameters</h4>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 10%">
+<col style="width: 53%">
+<col style="width: 21%">
+<col style="width: 15%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>X</td>
+<td>ndarray of shape (n_samples, n_features)</td>
+<td>Feature matrix.</td>
+<td><em>required</em></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="returns-1" class="level4 doc-section doc-section-returns">
+<h4 class="doc-section doc-section-returns anchored" data-anchor-id="returns-1">Returns</h4>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 8%">
+<col style="width: 33%">
+<col style="width: 59%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td></td>
+<td>ndarray of shape (n_samples, 2)</td>
+<td>Column-stacked probabilities for classes <code>0</code> and <code>1</code>.</td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="pyensmallen.LogisticRegression.score" class="level3">
+<h3 class="anchored" data-anchor-id="pyensmallen.LogisticRegression.score">score</h3>
+<div class="sourceCode" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>LogisticRegression.score(X, y)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Return mean classification accuracy on the provided sample.</p>
+</section>
+<section id="pyensmallen.LogisticRegression.summary" class="level3">
+<h3 class="anchored" data-anchor-id="pyensmallen.LogisticRegression.summary">summary</h3>
+<div class="sourceCode" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>LogisticRegression.summary(alpha<span class="op">=</span><span class="fl">0.05</span>, covariance_type<span class="op">=</span><span class="st">'nonrobust'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Return <code>[coef, se, ci_lb, ci_ub]</code> for each fitted parameter.</p>
 
 
+</section>
 </section>
 </section>
 

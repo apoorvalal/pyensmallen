@@ -135,6 +135,7 @@ window.Quarto = {
 </script>
 
 <link rel="stylesheet" href="../styles.css">
+<link rel="stylesheet" href="../reference/_styles-quartodoc.css">
 </head>
 
 <body class="nav-fixed">
@@ -163,8 +164,16 @@ window.Quarto = {
 <span class="menu-text">Optimizers</span></a>
   </li>  
   <li class="nav-item">
+    <a class="nav-link" href="../benchmarks.html"> 
+<span class="menu-text">Benchmarks</span></a>
+  </li>  
+  <li class="nav-item">
     <a class="nav-link" href="../estimators.html"> 
 <span class="menu-text">Estimators</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../reference/index.html"> 
+<span class="menu-text">API</span></a>
   </li>  
   <li class="nav-item">
     <a class="nav-link" href="../notebooks.html"> 
@@ -370,16 +379,16 @@ G'WG = G'W \Omega WG
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Get fast bootstrap standard errors</span></span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>fast_bootstrap_se <span class="op">=</span> gmm.bootstrap_scores(n_bootstrap<span class="op">=</span><span class="dv">1000</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>CPU times: user 177 ms, sys: 959 μs, total: 178 ms
-Wall time: 178 ms</code></pre>
+<pre><code>CPU times: user 157 ms, sys: 974 μs, total: 158 ms
+Wall time: 158 ms</code></pre>
 </div>
 </div>
 <div id="cell-16" class="cell" data-execution_count="5">
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="op">%%</span>time</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>slow_bootstrap_se <span class="op">=</span> gmm.bootstrap_full(n_bootstrap<span class="op">=</span><span class="dv">100</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>CPU times: user 1min 2s, sys: 1.6 s, total: 1min 3s
-Wall time: 29.3 s</code></pre>
+<pre><code>CPU times: user 1min 2s, sys: 1.57 s, total: 1min 4s
+Wall time: 29.5 s</code></pre>
 </div>
 </div>
 <div id="cell-17" class="cell" data-execution_count="6">
@@ -483,8 +492,8 @@ Standard errors: [0.06921393 0.07012597 0.06711118]</code></pre>
 <span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Get fast bootstrap standard errors</span></span>
 <span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>bootstrap_se <span class="op">=</span> gmm.bootstrap_scores(n_bootstrap<span class="op">=</span><span class="dv">1000</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>CPU times: user 687 ms, sys: 18.3 ms, total: 705 ms
-Wall time: 610 ms</code></pre>
+<pre><code>CPU times: user 731 ms, sys: 17.3 ms, total: 749 ms
+Wall time: 620 ms</code></pre>
 </div>
 </div>
 <div id="cell-26" class="cell" data-execution_count="12">

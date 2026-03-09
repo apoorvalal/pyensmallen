@@ -103,6 +103,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 <link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="reference/_styles-quartodoc.css">
 </head>
 
 <body class="nav-fixed">
@@ -131,8 +132,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span class="menu-text">Optimizers</span></a>
   </li>  
   <li class="nav-item">
+    <a class="nav-link" href="./benchmarks.html"> 
+<span class="menu-text">Benchmarks</span></a>
+  </li>  
+  <li class="nav-item">
     <a class="nav-link" href="./estimators.html"> 
 <span class="menu-text">Estimators</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./reference/index.html"> 
+<span class="menu-text">API</span></a>
   </li>  
   <li class="nav-item">
     <a class="nav-link active" href="./notebooks.html" aria-current="page"> 
@@ -172,7 +181,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <section id="notebooks" class="level1">
 <h1>Notebooks</h1>
-<p>The Quarto site includes executed versions of the core Python notebooks and links to the heavier benchmark notebooks.</p>
+<p>The Quarto site includes executed versions of the core Python notebooks and links to the heavier benchmark notebooks. For the primary performance results, use the dedicated <a href="./benchmarks.html">Benchmarks</a> page.</p>
 <section id="rendered-in-the-site" class="level2">
 <h2 class="anchored" data-anchor-id="rendered-in-the-site">Rendered in the site</h2>
 <p>These notebooks are part of the Quarto build and are rendered as documentation pages:</p>
@@ -181,16 +190,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li><p><a href="notebooks/banana.html">banana</a> Optimizer demonstration on Rosenbrock’s banana function.</p></li>
 <li><p><a href="notebooks/gmm.html">gmm</a> Linear IV GMM, nonlinear logit-style GMM, and bootstrap-based inference.</p></li>
 <li><p><a href="notebooks/autodiff_mnl.html">autodiff_mnl</a> JAX autodiff for multinomial logit with <code>pyensmallen</code> as the optimizer backend.</p></li>
+<li><p><a href="notebooks/regularization_comparison.html">regularization_comparison</a> Regularized estimator demo with <code>pyensmallen</code> versus scikit-learn and MSE path plots.</p></li>
 </ul>
 </section>
 <section id="source-only-notebooks" class="level2">
 <h2 class="anchored" data-anchor-id="source-only-notebooks">Source-only notebooks</h2>
 <p>These remain in the repository but are not part of the always-executed Quarto build:</p>
 <ul>
-<li><p><a href="../notebooks/likelihood_comparison.ipynb">likelihood_comparison.ipynb</a> Large benchmark notebook comparing <code>pyensmallen</code> against SciPy, statsmodels, CVXPY, and JAX.</p></li>
-<li><p><a href="../notebooks/likelihood_comparison_estimators.ipynb">likelihood_comparison_estimators.ipynb</a> Benchmark notebook using the estimator-class API.</p></li>
-<li><p><a href="../notebooks/synth.ipynb">synth.ipynb</a> Synthetic-control style balancing weights and simulation work.</p></li>
-<li><p><a href="../notebooks/compare_r.ipynb">compare_r.ipynb</a> R notebook, not part of the Python-backed docs build.</p></li>
+<li><p><a href="https://github.com/apoorvalal/pyensmallen/blob/feature/estimator_classes/notebooks/likelihood_comparison.ipynb">likelihood_comparison.ipynb</a> Large benchmark notebook comparing <code>pyensmallen</code> against SciPy, statsmodels, CVXPY, and JAX.</p></li>
+<li><p><a href="https://github.com/apoorvalal/pyensmallen/blob/feature/estimator_classes/notebooks/likelihood_comparison_estimators.ipynb">likelihood_comparison_estimators.ipynb</a> Benchmark notebook using the estimator-class API.</p></li>
+<li><p><a href="https://github.com/apoorvalal/pyensmallen/blob/feature/estimator_classes/notebooks/synth.ipynb">synth.ipynb</a> Synthetic-control style balancing weights and simulation work.</p></li>
+<li><p><a href="https://github.com/apoorvalal/pyensmallen/blob/feature/estimator_classes/notebooks/compare_r.ipynb">compare_r.ipynb</a> R notebook, not part of the Python-backed docs build.</p></li>
 </ul>
 </section>
 <section id="build-behavior" class="level2">

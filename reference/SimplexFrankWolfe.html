@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>pyensmallen</title>
+<title>simplexfrankwolfe – pyensmallen</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -57,22 +57,22 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </style>
 
 
-<script src="site_libs/quarto-nav/quarto-nav.js"></script>
-<script src="site_libs/quarto-nav/headroom.min.js"></script>
-<script src="site_libs/clipboard/clipboard.min.js"></script>
-<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
-<script src="site_libs/quarto-search/fuse.min.js"></script>
-<script src="site_libs/quarto-search/quarto-search.js"></script>
-<meta name="quarto:offset" content="./">
-<script src="site_libs/quarto-html/quarto.js"></script>
-<script src="site_libs/quarto-html/popper.min.js"></script>
-<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
-<script src="site_libs/quarto-html/anchor.min.js"></script>
-<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
-<script src="site_libs/bootstrap/bootstrap.min.js"></script>
-<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<script src="../site_libs/quarto-html/quarto.js"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -102,18 +102,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 }</script>
 
 
-<link rel="stylesheet" href="styles.css">
-<link rel="stylesheet" href="reference/_styles-quartodoc.css">
+<link rel="stylesheet" href="../styles.css">
+<link rel="stylesheet" href="../reference/_styles-quartodoc.css">
 </head>
 
-<body class="nav-fixed">
+<body class="nav-sidebar floating nav-fixed">
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top">
     <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
-    <a class="navbar-brand" href="./index.html">
+    <a class="navbar-brand" href="../index.html">
     <span class="navbar-title">pyensmallen</span>
     </a>
   </div>
@@ -124,27 +124,27 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll me-auto">
   <li class="nav-item">
-    <a class="nav-link active" href="./index.html" aria-current="page"> 
+    <a class="nav-link" href="../index.html"> 
 <span class="menu-text">Home</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link" href="./optimizers.html"> 
+    <a class="nav-link" href="../optimizers.html"> 
 <span class="menu-text">Optimizers</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link" href="./benchmarks.html"> 
+    <a class="nav-link" href="../benchmarks.html"> 
 <span class="menu-text">Benchmarks</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link" href="./estimators.html"> 
+    <a class="nav-link" href="../estimators.html"> 
 <span class="menu-text">Estimators</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link" href="./reference/index.html"> 
+    <a class="nav-link active" href="../reference/index.html" aria-current="page"> 
 <span class="menu-text">API</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link" href="./notebooks.html"> 
+    <a class="nav-link" href="../notebooks.html"> 
 <span class="menu-text">Notebooks</span></a>
   </li>  
 </ul>
@@ -153,22 +153,169 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
       </div> <!-- /container-fluid -->
     </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../reference/L_BFGS.html">Optimizers</a></li><li class="breadcrumb-item"><a href="../reference/SimplexFrankWolfe.html">SimplexFrankWolfe</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
 </header>
 <!-- content -->
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../reference/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">API Reference</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Estimators</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../reference/LinearRegression.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">LinearRegression</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../reference/LogisticRegression.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">LogisticRegression</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../reference/PoissonRegression.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">PoissonRegression</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">Optimizers</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../reference/L_BFGS.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">L_BFGS</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../reference/FrankWolfe.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">FrankWolfe</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../reference/SimplexFrankWolfe.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">SimplexFrankWolfe</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../reference/Adam.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Adam</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../reference/AdaMax.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">AdaMax</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../reference/AMSGrad.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">AMSGrad</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../reference/OptimisticAdam.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">OptimisticAdam</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../reference/Nadam.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Nadam</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true">
+ <span class="menu-text">Objectives and GMM</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../reference/linear_obj.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">linear_obj</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../reference/logistic_obj.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">logistic_obj</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../reference/poisson_obj.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">poisson_obj</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../reference/EnsmallenEstimator.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">EnsmallenEstimator</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
         <nav id="TOC" role="doc-toc" class="toc-active">
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#pyensmallen" id="toc-pyensmallen" class="nav-link active" data-scroll-target="#pyensmallen">pyensmallen</a>
+  <li><a href="#pyensmallen.SimplexFrankWolfe" id="toc-pyensmallen.SimplexFrankWolfe" class="nav-link active" data-scroll-target="#pyensmallen.SimplexFrankWolfe">SimplexFrankWolfe</a>
   <ul class="collapse">
-  <li><a href="#install" id="toc-install" class="nav-link" data-scroll-target="#install">Install</a></li>
-  <li><a href="#what-is-included" id="toc-what-is-included" class="nav-link" data-scroll-target="#what-is-included">What is included</a></li>
-  <li><a href="#documentation-map" id="toc-documentation-map" class="nav-link" data-scroll-target="#documentation-map">Documentation map</a></li>
-  <li><a href="#notes" id="toc-notes" class="nav-link" data-scroll-target="#notes">Notes</a></li>
+  <li><a href="#attributes" id="toc-attributes" class="nav-link" data-scroll-target="#attributes">Attributes</a></li>
+  <li><a href="#methods" id="toc-methods" class="nav-link" data-scroll-target="#methods">Methods</a>
+  <ul class="collapse">
+  <li><a href="#pyensmallen.SimplexFrankWolfe.optimize" id="toc-pyensmallen.SimplexFrankWolfe.optimize" class="nav-link" data-scroll-target="#pyensmallen.SimplexFrankWolfe.optimize">optimize</a></li>
+  </ul></li>
   </ul></li>
   </ul>
 </nav>
@@ -179,46 +326,108 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 
-<section id="pyensmallen" class="level1">
-<h1>pyensmallen</h1>
-<p><code>pyensmallen</code> provides Python bindings for the <code>ensmallen</code> optimization library, with a focus on econometrics and supervised learning workflows.</p>
-<section id="install" class="level2">
-<h2 class="anchored" data-anchor-id="install">Install</h2>
-<p>Base install:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> pip install pyensmallen</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>Development install with all test and notebook dependencies:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> pip install <span class="at">--python</span> .venv/bin/python <span class="st">".[full]"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>Editable install in this repository:</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> pip install <span class="at">--python</span> .venv/bin/python meson meson-python ninja pybind11</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> pip install <span class="at">--python</span> .venv/bin/python <span class="at">--no-build-isolation</span> <span class="at">-e</span> <span class="st">".[full]"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<section id="pyensmallen.SimplexFrankWolfe" class="level1">
+<h1>SimplexFrankWolfe</h1>
+<div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>SimplexFrankWolfe()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Frank-Wolfe optimizer specialized to simplex constraints.</p>
+<p>Use this optimizer when parameters must be nonnegative and sum to one, for example in balancing-weight or synthetic-control style problems.</p>
+<section id="attributes" class="level2">
+<h2 class="anchored" data-anchor-id="attributes">Attributes</h2>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><a href="#pyensmallen.SimplexFrankWolfe.maxIterations">maxIterations</a></td>
+<td>Maximum number of optimizer iterations.</td>
+</tr>
+<tr class="even">
+<td><a href="#pyensmallen.SimplexFrankWolfe.tolerance">tolerance</a></td>
+<td>Optimization tolerance.</td>
+</tr>
+</tbody>
+</table>
 </section>
-<section id="what-is-included" class="level2">
-<h2 class="anchored" data-anchor-id="what-is-included">What is included</h2>
-<ul>
-<li>Optimizers: <code>L_BFGS</code>, <code>FrankWolfe</code>, <code>SimplexFrankWolfe</code>, and Adam variants</li>
-<li>Objective helpers: linear, logistic, and Poisson losses</li>
-<li>Estimator classes: <code>LinearRegression</code>, <code>LogisticRegression</code>, <code>PoissonRegression</code></li>
-<li>Inference: classical and robust sandwich standard errors for unregularized OLS and QMLE-style logit and Poisson</li>
-<li>GMM support with JAX autodiff</li>
-</ul>
+<section id="methods" class="level2">
+<h2 class="anchored" data-anchor-id="methods">Methods</h2>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><a href="#pyensmallen.SimplexFrankWolfe.optimize">optimize</a></td>
+<td>optimize(self: pyensmallen._pyensmallen.SimplexFrankWolfe, objective: collections.abc.Callable[[typing.Annotated[numpy.typing.ArrayLike, numpy.float64], typing.Annotated[numpy.typing.ArrayLike, numpy.float64]], float], initial_point: typing.Annotated[numpy.typing.ArrayLike, numpy.float64]) -&gt; numpy.typing.NDArray[numpy.float64]</td>
+</tr>
+</tbody>
+</table>
+<section id="pyensmallen.SimplexFrankWolfe.optimize" class="level3">
+<h3 class="anchored" data-anchor-id="pyensmallen.SimplexFrankWolfe.optimize">optimize</h3>
+<div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>SimplexFrankWolfe.optimize()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>optimize(self: pyensmallen._pyensmallen.SimplexFrankWolfe, objective: collections.abc.Callable[[typing.Annotated[numpy.typing.ArrayLike, numpy.float64], typing.Annotated[numpy.typing.ArrayLike, numpy.float64]], float], initial_point: typing.Annotated[numpy.typing.ArrayLike, numpy.float64]) -&gt; numpy.typing.NDArray[numpy.float64]</p>
+<p>Optimize an objective from the provided starting point.</p>
+<section id="parameters" class="level4 doc-section doc-section-parameters">
+<h4 class="doc-section doc-section-parameters anchored" data-anchor-id="parameters">Parameters</h4>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 8%">
+<col style="width: 5%">
+<col style="width: 78%">
+<col style="width: 6%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>objective</td>
+<td>callable</td>
+<td>Callable with signature <code>objective(params, gradient)</code>. The callable should write the gradient in place and return the scalar objective.</td>
+<td><em>required</em></td>
+</tr>
+<tr class="even">
+<td>initial_point</td>
+<td>ndarray</td>
+<td>Initial parameter vector.</td>
+<td><em>required</em></td>
+</tr>
+</tbody>
+</table>
 </section>
-<section id="documentation-map" class="level2">
-<h2 class="anchored" data-anchor-id="documentation-map">Documentation map</h2>
-<ul>
-<li><a href="./optimizers.html">Optimizers</a>: low-level optimizer classes and when to use them</li>
-<li><a href="./benchmarks.html">Benchmarks</a>: runtime and convergence comparisons against SciPy and statsmodels</li>
-<li><a href="./estimators.html">Estimators</a>: supervised estimators, fitted attributes, and inference</li>
-<li><a href="./notebooks.html">Notebooks</a>: examples and benchmark notebooks in this repository</li>
-</ul>
-</section>
-<section id="notes" class="level2">
-<h2 class="anchored" data-anchor-id="notes">Notes</h2>
-<ul>
-<li>The <code>full</code> extra installs Python packages required to run tests and notebooks.</li>
-<li>Quarto itself is an external CLI. Render this site with <code>scripts/render_docs.sh</code>.</li>
-</ul>
+<section id="returns" class="level4 doc-section doc-section-returns">
+<h4 class="doc-section doc-section-returns anchored" data-anchor-id="returns">Returns</h4>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td></td>
+<td>ndarray</td>
+<td>Optimized parameter vector.</td>
+</tr>
+</tbody>
+</table>
 
 
+</section>
+</section>
 </section>
 </section>
 
