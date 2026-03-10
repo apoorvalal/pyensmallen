@@ -168,6 +168,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#install" id="toc-install" class="nav-link" data-scroll-target="#install">Install</a></li>
   <li><a href="#what-is-included" id="toc-what-is-included" class="nav-link" data-scroll-target="#what-is-included">What is included</a></li>
   <li><a href="#documentation-map" id="toc-documentation-map" class="nav-link" data-scroll-target="#documentation-map">Documentation map</a></li>
+  <li><a href="#runtime-benchmark-snapshot" id="toc-runtime-benchmark-snapshot" class="nav-link" data-scroll-target="#runtime-benchmark-snapshot">Runtime benchmark snapshot</a></li>
   <li><a href="#notes" id="toc-notes" class="nav-link" data-scroll-target="#notes">Notes</a></li>
   </ul></li>
   </ul>
@@ -209,6 +210,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li><a href="./benchmarks.html">Benchmarks</a>: runtime and convergence comparisons against SciPy and statsmodels</li>
 <li><a href="./estimators.html">Estimators</a>: supervised estimators, fitted attributes, and inference</li>
 <li><a href="./notebooks.html">Notebooks</a>: examples and benchmark notebooks in this repository</li>
+</ul>
+</section>
+<section id="runtime-benchmark-snapshot" class="level2">
+<h2 class="anchored" data-anchor-id="runtime-benchmark-snapshot">Runtime benchmark snapshot</h2>
+<p><img src="./assets/runtime_benchmark_latest.png" class="img-fluid" alt="Runtime benchmark comparing pyensmallen, scipy, and statsmodels across model families, sample sizes, and parameter counts."></p>
+<ul>
+<li><code>pyensmallen</code> remains fastest in most medium/large configurations, with widening gaps at larger <code>n</code>.</li>
+<li>The practical implication is cheaper repeated estimation loops: bootstrap inference, model sweeps, and sensitivity analysis become much more tractable.</li>
+<li>SciPy generally tracks second, while statsmodels is often slower at scale; this compounds heavily in resampling workflows.</li>
 </ul>
 </section>
 <section id="notes" class="level2">
