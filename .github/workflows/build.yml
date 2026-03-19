@@ -18,6 +18,8 @@ jobs:
           - ["cp310", "3.10"]
           - ["cp311", "3.11"]
           - ["cp312", "3.12"]
+          - ["cp313", "3.13"]
+          - ["cp314", "3.14"]
     runs-on: ${{ matrix.buildplat[0] }}
     if: startsWith(github.ref, 'refs/tags/v')
 
@@ -67,7 +69,7 @@ jobs:
           python -m pip install delocate wheel
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.19.0
+        uses: pypa/cibuildwheel@v3.4.0
         env:
           CIBW_BEFORE_BUILD: |
             export PKG_CONFIG_PATH="/Users/runner/micromamba/envs/pyensmallen/lib/pkgconfig:$PKG_CONFIG_PATH"
